@@ -49,12 +49,12 @@ it to hold — and classify each:
 - **judgment** — rests irreducibly on opinion or values.
 
 These premises are *your* decomposition, and an AI-guessed "load-bearing" premise
-may be wrong, or merely one of several possible rationales. So mark each premise
-`necessary` **only** when the user ratifies it as load-bearing, or when you can show
-a genuine logical entailment (claim is false if the premise is false). Un-ratified
-premises are `contributing`, not `necessary`. An unverifiable conclusion often rests
-on *some* verifiable premises — find them, but don't overclaim which ones the whole
-thing hangs on.
+may be wrong, or merely one rationale among others you have not exhaustively
+enumerated. So mark each premise `necessary` **only** when the user ratifies it as
+load-bearing, or when you can show a genuine logical entailment (claim is false if
+the premise is false). Un-ratified premises are `contributing`, not `necessary`. An
+unverifiable conclusion often rests on a subset of independently verifiable premises
+— find them, but don't overclaim which ones the whole thing hangs on.
 
 ## Step 3 — Check the checkable premises (with citations resolved)
 

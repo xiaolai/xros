@@ -1,5 +1,5 @@
 ---
-description: Turn a vague or unverifiable question into a falsifiable claim, then discover the currently best-available way to check it — with an explicit statement of what that check cannot establish. For when the user can't answer "how would you know if this were wrong?". Delegates web research to the deep-research skill; returns "no adequate check exists" honestly rather than inventing one.
+description: Turn a vague or unverifiable question into a falsifiable claim, then discover the currently best-available way to check it — with an explicit statement of what that check cannot establish. For when the user can't answer "how would you know if this were wrong?". Delegates web research to the deep-research skill; returns "no check clears the soundness bar" honestly rather than inventing one.
 argument-hint: "<a vague question or a claim you can't yet check>"
 ---
 
@@ -7,13 +7,16 @@ argument-hint: "<a vague question or a claim you can't yet check>"
 
 The user's question (may be vague, may be malformed): **$ARGUMENTS**
 
+If `$ARGUMENTS` is empty, ask the user for the question and wait for it before
+proceeding to Step 1 — do not run the framing fan-out on an empty input.
+
 Your job is two coupled halves:
 
 1. **Frame** — sharpen a vague or ill-posed question into a *falsifiable claim*:
    one for which you can state what observation would prove it wrong.
 2. **Discover** — find the **currently best available** way to check that claim,
-   paired with its **ceiling** (what passing will not establish). If nothing
-   adequate exists, say so — do not manufacture a check.
+   paired with its **ceiling** (what passing will not establish). If no check
+   clears the Step-2 soundness bar, say so — do not manufacture one.
 
 They are coupled: how you should sharpen the question depends on what can actually
 be checked. Discovery may report *"no viable check for framing A, but framing B is
@@ -25,8 +28,8 @@ entirely.
 
 ## Non-negotiable honesty rules
 
-- **"No adequate check exists" is a success, not a failure.** Never invent a
-  plausible-looking check to have something to return. A fabricated check aimed at
+- **"No check clears the soundness bar" is a success, not a failure.** Never invent
+  a plausible-looking check to have something to return. A fabricated check aimed at
   a non-expert is the worst outcome this command can produce.
 - **Every proposed check ships with a ceiling** — the class of wrongness it cannot
   catch. "Best available" must never be presented as "good enough."
@@ -250,13 +253,13 @@ given the benefit of the doubt.
    claim, **drop or downgrade the claim** — treat an unresolvable or non-entailing
    citation as fabricated.
 3. **Null-critic — structured and adjudicated.** Run one agent (stronger model)
-   whose *only* job is to argue **no adequate check exists**. It returns a verdict
-   `{ noAdequateCheck: bool, objections: [...] }`. Then an **independent
+   whose *only* job is to argue **no check clears the soundness bar**. It returns a
+   verdict `{ noCheckClearsBar: bool, objections: [...] }`. Then an **independent
    adjudicator** (not the ranking agent) resolves each objection: every objection
    must be explicitly *answered* or the corresponding candidate is **rejected**. A
-   missing or errored null-critic **fails closed** (treat as "no adequate check").
-   If the critic prevails, the honest output is *"no adequate check — here is the
-   strongest partial signal and exactly what it cannot tell you,"* never a
+   missing or errored null-critic **fails closed** (treat as "no check clears the
+   bar"). If the critic prevails, the honest output is *"no check clears the bar —
+   here is the strongest partial signal and exactly what it cannot tell you,"* never a
    manufactured oracle.
 
 Every surviving candidate must carry a **ceiling**. No ceiling → not presentable.
@@ -294,7 +297,7 @@ Map the result back so `xros:compile` can consume it:
 |----------------|-------|
 | A **sound** check | → `xros:compile` with `verifier.soundness: sound` (Tier A) |
 | A **statistical** check | → `xros:compile` with `soundness: statistical`, the `ceiling`, and `asOf`/`revisitIf` staleness markers set |
-| **None adequate** | → the **Tier-C lightweight path** (premise-checking, pre-mortem, tripwires). Do NOT route to the full `xros:run` engine. |
+| **None clears the bar** | → the **Tier-C path `xros:reason`** (premise-checking, pre-mortem, tripwires). Do NOT route to the full `xros:run` engine. |
 
 Carry the framing into `objective.claim` / `claimFormalization`, the failure modes
 from the learning report into `adversarialChecklist` (marked `assistant-proposed`),

@@ -1,5 +1,7 @@
 # XROS — executable research operating system
 
+[![Validated by NLPM](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/xiaolai/xros-for-claude/main/nlpm-badge.json)](https://github.com/xiaolai/xros-for-claude/blob/main/nlpm-badge.json)
+
 XROS turns a long-horizon investigation into a **verifiable methodology spec**, then runs
 it against a **real check** and gates the verdict on that check's exit code.
 
@@ -37,7 +39,7 @@ weak check to unlock the strong mode — the schema rejects it.
 | Command | What it does |
 |---------|--------------|
 | `/xros:compile` | Interview → a validated methodology spec. Asks, in plain language, how you would check an answer *before* anything else; routes to `sharpen` when you can't |
-| `/xros:sharpen` | For a vague or un-checkable question: sharpen it into a falsifiable claim, then research and dry-run the **currently best available** check — with an explicit statement of what that check *cannot* establish, or an honest "no adequate check exists" |
+| `/xros:sharpen` | For a vague or un-checkable question: sharpen it into a falsifiable claim, then research and dry-run the **currently best available** check — with an explicit statement of what that check *cannot* establish, or an honest "no check clears the soundness bar" |
 | `/xros:run` | Tier A/B spec → a multi-agent Workflow (diverse independent routes, adversarial refutation, counterexample-fed loop) → runs your check and gates on its exit code. A Tier-C (`soundness: none`) spec is redirected to `xros:reason` — the engine never runs without a check |
 | `/xros:reason` | The Tier-C path for a claim with no mechanical check: decompose into premises and verify the checkable ones, pre-mortem, and emit dated tripwires. All output labeled UNVERIFIED |
 

@@ -46,9 +46,9 @@ It enforces the schema **and** the semantic gates JSON Schema cannot express
 - `statistical` → **Tier B**: the oracle runs but is *evidentiary only*; `returnPolicy`
   is necessarily `strongest-partial-allowed`. Never report "complete".
 - `none` → **Tier C**: there is no check. **Do NOT run the engine.** Redirect to
-  **`xros:reason $ARGUMENTS`**, which does the structured, adversarial reasoning
-  appropriate to an un-checkable claim (premise-checking, pre-mortem, dated
-  tripwires) and labels everything UNVERIFIED. Running the multi-agent Workflow
+  **`xros:reason $ARGUMENTS`**, which runs the structured reasoning defined in
+  `xros:reason` Steps 1–5 (premise-checking, pre-mortem, dated tripwires) and
+  labels everything UNVERIFIED. Running the multi-agent Workflow
   here would only manufacture confident text with nothing anchoring it. Stop after
   the redirect; the rest of this command (Steps 2–6) is for Tier A/B only.
 
