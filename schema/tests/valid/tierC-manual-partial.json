@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "tierc-onboarding-strategy",
+  "title": "Tier C — no mechanical oracle (human judgment)",
+  "domain": "product-strategy",
+  "objective": {
+    "ontology": [
+      {
+        "term": "activation",
+        "definition": "a new user completing the core action within 24 hours of signup"
+      }
+    ],
+    "claim": "Onboarding change X raises 24-hour activation without harming week-4 retention."
+  },
+  "success": {
+    "successCriterion": "A change design with an argued causal mechanism and a measurement plan that a human reviewer judges credible.",
+    "nonGoals": [
+      "A change that raises activation via dark patterns that then hurt retention.",
+      "A plausible-sounding rationale with no measurement plan attached."
+    ],
+    "existenceAssumption": "unknown",
+    "returnPolicy": "strongest-partial-allowed"
+  },
+  "search": {
+    "approaches": [
+      {
+        "name": "friction-removal",
+        "family": "funnel",
+        "lens": "cut steps before the core action",
+        "provenance": "user"
+      },
+      {
+        "name": "motivation",
+        "family": "psychology",
+        "lens": "raise perceived value at first run",
+        "provenance": "user"
+      },
+      {
+        "name": "social-proof",
+        "family": "trust",
+        "lens": "surface peer-usage signals",
+        "provenance": "user"
+      }
+    ],
+    "requiredArtifacts": [
+      "a concrete change specification",
+      "an experiment/measurement plan"
+    ]
+  },
+  "verification": {
+    "adversarialChecklist": [
+      {
+        "failureMode": "activation up but retention down (a dark pattern)",
+        "check": "require a week-4 retention guardrail metric alongside activation",
+        "provenance": "user"
+      },
+      {
+        "failureMode": "novelty effect mistaken for durable lift",
+        "check": "require a 4-week holdout read, not a 1-week read",
+        "provenance": "user"
+      }
+    ],
+    "verifier": {
+      "kind": "manual",
+      "soundness": "none",
+      "ceiling": "There is no mechanical check here: no run establishes the causal claim. Every conclusion rests on human judgment and must be labeled UNVERIFIED. The adversarial checklist reduces obvious errors but cannot confirm the change works."
+    }
+  },
+  "deferredVerification": {
+    "tripwires": [
+      {
+        "observation": "24-hour activation rate for the treatment cohort vs control",
+        "byWhen": "2026-09-01",
+        "whatWouldFalsify": "in an adequately powered A/B test (sized for 80% power to detect the pre-registered minimum meaningful effect of +2pp activation), the treatment's 24h activation lift is at or below 0. An underpowered null is INCONCLUSIVE, not a falsifier.",
+        "owner": "growth-pm"
+      },
+      {
+        "observation": "week-4 retention of activated treatment users vs control",
+        "byWhen": "2026-10-01",
+        "whatWouldFalsify": "week-4 retention of the treatment cohort is at least 3pp below control (the pre-registered guardrail) — activation was bought by hurting retention. An underpowered read is inconclusive, not a pass.",
+        "owner": "growth-pm"
+      }
+    ]
+  },
+  "stopping": {
+    "minRounds": 1,
+    "maxRounds": 4,
+    "giveUpCondition": "return the best-argued change after 2 empty rounds"
+  },
+  "toolPolicy": {
+    "webSearch": "background-only"
+  }
+}

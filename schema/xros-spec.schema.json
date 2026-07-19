@@ -1,0 +1,609 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xiaolai.dev/xros/xros-spec.schema.json",
+  "title": "XROS Methodology Spec",
+  "description": "The contract shared by xros:compile (interview -> spec), xros:run (Tier A/B engine), xros:reason (Tier C, soundness=none), and xros:sharpen (find a check for an un-checkable claim). Compile/sharpen write it; run/reason read it. Carries per-item provenance, verifier.ceiling/asOf/revisitIf, and deferredVerification tripwires. Encodes the CDC long-horizon research methodology for an arbitrary problem. Instances are authored as JSON (portable, dependency-free to parse in any host). Structural gates (minItems, required, conditionals) are enforced here; semantic gates (are the non-goals meaningful? is the checklist domain-specific?) are enforced by the compiler interview.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "title", "domain", "objective", "success", "search", "verification", "stopping", "toolPolicy"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Version of THIS spec format, not of the user's problem. Lets the runner refuse specs it cannot execute."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,63}$",
+      "description": "Stable kebab-case slug. Names the artifact so a methodology is reusable and versionable across problems (the EOU thesis: save the process, not the prompt)."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable name of the investigation."
+    },
+    "domain": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Field of the problem (e.g. 'graph-theory', 'distributed-systems', 'quantitative-finance'). Used for calibration and to sanity-check whether a real verification oracle is even plausible in this domain."
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Lineage of this spec. No timestamps are stored here by the compiler (stamp them after, if wanted) to keep specs reproducible.",
+      "properties": {
+        "derivedFrom": {
+          "type": "string",
+          "description": "Methodology this was modeled on, e.g. 'openai-cdc-v2'."
+        },
+        "author": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+
+    "objective": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Blocks 1-2 of the CDC anatomy: what the terms mean and what exactly is being claimed.",
+      "required": ["ontology", "claim"],
+      "properties": {
+        "ontology": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Precise definition of every load-bearing term BEFORE search starts. Kills the ambiguity that lets agents talk past each other.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["term", "definition"],
+            "properties": {
+              "term": { "type": "string", "minLength": 1 },
+              "definition": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "claim": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The single, fully-quantified target statement. Exactly one unambiguous goal."
+        },
+        "claimFormalization": {
+          "type": "string",
+          "description": "Optional machine/formal statement of the claim (e.g. a Lean theorem signature, a TLA+ property) that the verifier will ultimately check against."
+        }
+      }
+    },
+
+    "success": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Blocks 3-4: what counts as done, what does NOT, and whether we may assume a solution exists. This object holds the two safety levers enforced by the top-level conditionals.",
+      "required": ["successCriterion", "nonGoals", "existenceAssumption", "returnPolicy"],
+      "properties": {
+        "successCriterion": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Precisely what a complete, acceptable solution must establish."
+        },
+        "nonGoals": {
+          "type": "array",
+          "minItems": 2,
+          "description": "The anti-victory clause. Things that LOOK like success but do not count (special cases, reductions to another unproved conjecture, computational spot-checks, candidates without a completeness/nonexistence certificate). This is the single most-skipped and most-valuable block; the compiler must force at least two.",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "existenceAssumption": {
+          "type": "string",
+          "enum": ["assume-solution-exists", "open-question", "unknown"],
+          "description": "'assume-solution-exists' frames the run as a search and prevents premature give-up (CDC used this). But combined with returnPolicy=complete-only it manufactures confident-but-wrong artifacts on genuinely open problems, so the schema forbids that pairing: anything other than 'assume-solution-exists' forces returnPolicy='strongest-partial-allowed'."
+        },
+        "returnPolicy": {
+          "type": "string",
+          "enum": ["complete-only", "strongest-partial-allowed"],
+          "description": "'complete-only' = return nothing but a full solution that passes the verifier (CDC behavior). Permitted ONLY when a mechanical verifier exists AND existenceAssumption='assume-solution-exists'. Otherwise use 'strongest-partial-allowed', which also returns the strongest rigorously-established partial result and its exact remaining gap."
+        }
+      }
+    },
+
+    "search": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Blocks 5-6 + 8: the orchestration policy the runner compiles into Workflow primitives (parallel routes, family dedup, blocked-route loop, concrete-artifact requirement).",
+      "required": ["approaches", "requiredArtifacts"],
+      "properties": {
+        "approaches": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 32,
+          "description": "The diverse starting portfolio. Each becomes an independent route-agent. Grouped by 'family' so the runner can dedup and redirect when too many converge. At least three distinct families to guarantee diversity.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "family", "lens", "provenance"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "family": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The underlying conceptual idea (not the wording). The dedup/registry key that prevents premature convergence."
+              },
+              "lens": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The angle/instruction the route-agent is given."
+              },
+              "seedIdea": {
+                "type": "string",
+                "description": "Optional concrete starting construction/lemma/hypothesis for this route."
+              },
+              "provenance": {
+                "type": "string",
+                "enum": ["user", "assistant-proposed", "assistant-assumed"],
+                "description": "Who authored this item. 'user' = the user supplied it; 'assistant-proposed' = the assistant suggested it and the user ratified it; 'assistant-assumed' = the assistant filled it without ratification. A spec dominated by assistant-* items carries a confidence downgrade into xros:run."
+              }
+            }
+          }
+        },
+        "independenceRounds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 2,
+          "description": "How many rounds routes develop independently before any cross-pollination. Preserves diversity early (CDC: 'do not tell most agents the currently favored approach')."
+        },
+        "maxConcurrentAgents": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64,
+          "default": 8,
+          "description": "Ceiling on concurrent route/verify agents. Note: the Workflow tool caps real concurrency at min(16, cores-2) and queues the rest, so values above ~16 raise fan-out breadth, not simultaneity. CDC quoted 64."
+        },
+        "crossPollinationRule": {
+          "type": "string",
+          "description": "When and how ideas from independent routes may be combined (only after they are developed far enough to expose real strengths and gaps)."
+        },
+        "blockedRouteReopenRule": {
+          "type": "string",
+          "description": "Condition for reviving a route marked blocked (CDC: only when a genuinely new mechanism, invariant, or construction appears). Prevents both premature death and infinite thrashing."
+        },
+        "antiProgressRules": {
+          "type": "array",
+          "description": "Route-level anti-patterns that do NOT count as progress, distinct from nonGoals (which concern the final artifact). Canonical example: 'a route that reduces to a statement equivalent in strength to the claim is not progress unless it supplies a genuinely new proof of that statement.'",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "requiredArtifacts": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Concrete outputs every agent must return (lemmas, constructions, equations, code, tests, counterexamples). Rejects vague optimism and status reports.",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Block 7 + the load-bearing oracle. The adversarial checklist is the domain-specific knowledge that makes verification trustworthy; the verifier is the external, mechanical gate that keeps 'assume a solution exists' from producing hallucinations.",
+      "required": ["adversarialChecklist", "verifier"],
+      "properties": {
+        "adversarialChecklist": {
+          "type": "array",
+          "minItems": 2,
+          "description": "Domain-specific failure modes every candidate must be attacked with (CDC example: 'repeated-edge closed trails masquerading as cycles'). If the user cannot supply at least two, that is a signal they lack the domain expertise this workflow requires.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["failureMode", "check", "provenance"],
+            "properties": {
+              "failureMode": {
+                "type": "string",
+                "minLength": 1,
+                "description": "A specific way a wrong candidate can look correct."
+              },
+              "check": {
+                "type": "string",
+                "minLength": 1,
+                "description": "How an adversarial agent detects it."
+              },
+              "provenance": {
+                "type": "string",
+                "enum": ["user", "assistant-proposed", "assistant-assumed"],
+                "description": "Who authored this failure mode. See approaches[].provenance. Assistant-authored checklist items are legitimate (the assistant often knows a domain's failure modes better than a novice) but downgrade the spec's confidence unless the user ratified them."
+              }
+            }
+          }
+        },
+        "verificationVotes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9,
+          "default": 3,
+          "description": "Number of independent skeptics per candidate. Survives only on a majority failing to refute. Capped so an untrusted spec cannot force an unbounded refuter fan-out (tasks = candidates x votes)."
+        },
+        "verifier": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "The external oracle. When it has a runnable 'command' the runner EXECUTES it and gates on exit code (never lets an agent self-grade). Only a 'sound' oracle permits returnPolicy=complete-only; 'statistical' and 'none' force strongest-partial-allowed.",
+          "required": ["kind", "soundness"],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": ["formal-proof", "test-suite", "type-check", "compile", "reproducible-experiment", "backtest", "manual", "none"],
+              "description": "formal-proof=Lean/Coq/Isabelle; the first six are mechanical (exit-code gateable). 'manual'/'none' have no automatic oracle."
+            },
+            "soundness": {
+              "type": "string",
+              "enum": ["sound", "statistical", "none"],
+              "description": "Does passing the oracle actually ESTABLISH the claim? 'sound' = yes, within its stated scope (formal proof, model-check over the full bounded space, exhaustive or type-level check) — Tier A. 'statistical' = passing is evidence, not proof (backtest, benchmark, sampled experiment, fuzzing) — Tier B. 'none' = no automatic oracle (kind manual/none) — Tier C. This field makes the oracle-tier decision structurally binding: only 'sound' permits returnPolicy=complete-only."
+            },
+            "tool": {
+              "type": "string",
+              "description": "Concrete tool, e.g. 'lean4', 'tlc', 'pytest', 'tsc'."
+            },
+            "command": {
+              "type": "string",
+              "description": "Shell command the runner executes to verify the winning candidate. Required whenever kind is mechanical."
+            },
+            "artifactToVerify": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^(?![/\\\\~])(?![A-Za-z]:)(?!.*(^|/)\\.\\.(/|$))(?!.*(^|/)\\.(/|$))[^\\u0000-\\u001f\\u007f-\\u009f\\\\]+$",
+                "description": "A relative path beneath the working directory. Leading '/' and '..' traversal are rejected structurally; the runner additionally rejects symlinks at write time."
+              },
+              "description": "One or more relative paths the winning agent must emit for the oracle to consume (e.g. a single Lean file, or a TLA+ module plus its .cfg). The runner writes each candidate file to its path — inside the isolation worktree when set — after re-validating the path, then runs 'command'. Multi-file oracles list every file here."
+            },
+            "passCondition": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "Deterministic pass gate the runner evaluates on the oracle's result. Pass = exit code in exitCodes AND every stdoutContains substring present AND no stdoutAbsent substring present. Prefer a command that already encodes success in its exit code; use the string checks only when it does not.",
+              "properties": {
+                "exitCodes": { "type": "array", "items": { "type": "integer" }, "default": [0], "description": "Allowed process exit codes (default [0])." },
+                "stdoutContains": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Substrings that MUST appear in combined stdout+stderr." },
+                "stdoutAbsent": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Substrings that must NOT appear (e.g. 'truncated', 'Error')." },
+                "timeoutMs": { "type": "integer", "minimum": 1, "description": "Optional hard timeout for the oracle command; the runner kills it and treats a timeout as a fail." }
+              }
+            },
+            "ceiling": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S",
+              "description": "What passing this check does NOT establish — the class of wrongness it cannot catch (e.g. 'a passing backtest does not rule out overfitting or a regime change'; 'a bounded model check says nothing about the unbounded case'). REQUIRED when soundness is 'statistical' or 'none', because there 'best available' must never be read as 'good enough'. Recommended even when 'sound', to state the scope the proof is bounded to."
+            },
+            "asOf": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+              "description": "The date (YYYY-MM-DD) on which this was the best available check. A recommendation ages; this marks when it was made so a stale one is visible."
+            },
+            "revisitIf": {
+              "type": "string",
+              "description": "What change should trigger re-evaluating this choice of check — a new tool or benchmark, access to a dataset, a shift in the claim's scope."
+            },
+            "notes": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "stopping": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Block 9: persistence decoupled from budget, plus the hard cost rails the runner enforces.",
+      "required": ["minRounds", "maxRounds"],
+      "properties": {
+        "minRounds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Do not return before this many rounds (CDC's 'spend at least 8 hours' generalized to rounds). Prevents first-wave give-up."
+        },
+        "maxRounds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Hard ceiling on rounds. Must be >= minRounds."
+        },
+        "budgetTokens": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "default": null,
+          "description": "Hard token ceiling for the whole run, mapped to the Workflow 'budget' primitive. null = no explicit ceiling (relies on maxRounds). Surfaced to the user; never silent."
+        },
+        "convergenceRule": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Loop-until-dry control: keep launching rounds until this many consecutive rounds surface nothing new.",
+          "properties": {
+            "consecutiveEmptyRounds": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 2
+            }
+          }
+        },
+        "giveUpCondition": {
+          "type": "string",
+          "description": "When returnPolicy=strongest-partial-allowed, the condition under which the run returns its best partial result and stops."
+        }
+      }
+    },
+
+    "toolPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Block 10: scope the escape hatches so agents cannot short-circuit the search by looking up the answer.",
+      "required": ["webSearch"],
+      "properties": {
+        "webSearch": {
+          "type": "string",
+          "enum": ["background-only", "full", "none"],
+          "default": "background-only",
+          "description": "'background-only' = ordinary background and standard named results only, never the solution or whether the problem is open (CDC's rule)."
+        },
+        "forbiddenLookups": {
+          "type": "array",
+          "description": "Explicit queries agents must not run, e.g. 'whether <claim> is already solved/open'.",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "allowedTools": {
+          "type": "array",
+          "description": "Optional allowlist of tools agents may use during the run. Enforced at runtime only when execution.agentType names a restricted-tool type.",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Runner-side hints that bridge the spec to the Workflow tool. Optional; defaults are safe.",
+      "properties": {
+        "preview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the generated Workflow script + token estimate and require explicit go before firing. Default on, because a full run can be very expensive."
+        },
+        "isolation": {
+          "type": "string",
+          "enum": ["none", "worktree"],
+          "default": "none",
+          "description": "Use 'worktree' when route-agents mutate files in parallel and would otherwise conflict."
+        },
+        "agentModel": {
+          "type": "string",
+          "description": "Optional model override for route/verify agents. Omit to inherit the session model."
+        },
+        "agentEffort": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "xhigh", "max"],
+          "description": "Optional reasoning-effort override for agents."
+        },
+        "agentType": {
+          "type": "string",
+          "description": "Optional custom Workflow agent type (one with restricted tools) for route/verify agents. Set this to actually ENFORCE toolPolicy.allowedTools at runtime — the plain agent() call has no per-call tool allowlist, so without it allowedTools is only prompt-level guidance."
+        }
+      }
+    },
+
+    "deferredVerification": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The honest substitute for an oracle when no check can settle the claim NOW: tripwires that convert an unverifiable present-claim into a verifiable future-claim. Produced by the Tier-C path. XROS can EMIT these but cannot enforce them — that is stated plainly to the user.",
+      "required": ["tripwires"],
+      "properties": {
+        "tripwires": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "description": "Each tripwire names something observable, by when, and what outcome would falsify the claim. A tripwire without a date and an owner is theater, so both are required.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["observation", "byWhen", "whatWouldFalsify", "owner"],
+            "properties": {
+              "observation": { "type": "string", "minLength": 1, "description": "The concrete thing to watch/measure." },
+              "byWhen": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$", "description": "A calendar date (ISO YYYY-MM-DD) by which to review — 'eventually' is not a date. The validator additionally checks it is a real calendar date. For an event-driven trigger, put the review date here and describe the event in 'trigger'." },
+              "trigger": { "type": "string", "minLength": 1, "description": "Optional event condition (e.g. 'when we ship v2') that the review date in byWhen backstops." },
+              "whatWouldFalsify": { "type": "string", "minLength": 1, "description": "The outcome that would show the claim was wrong." },
+              "owner": { "type": "string", "minLength": 1, "description": "Who is responsible for checking it — without an owner, no one will. Must be a real, consenting person (the Tier-C command ratifies this with the user)." }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "allOf": [
+    {
+      "description": "Safety rule 1: complete-only return is permitted ONLY with a SOUND oracle and a runnable command. A statistical oracle (backtest/benchmark) or no oracle cannot request 'return complete solution only'.",
+      "if": {
+        "required": ["success"],
+        "properties": {
+          "success": {
+            "required": ["returnPolicy"],
+            "properties": { "returnPolicy": { "const": "complete-only" } }
+          }
+        }
+      },
+      "then": {
+        "required": ["verification"],
+        "properties": {
+          "verification": {
+            "required": ["verifier"],
+            "properties": {
+              "verifier": {
+                "required": ["soundness", "command"],
+                "properties": {
+                  "soundness": { "const": "sound" },
+                  "command": { "type": "string", "minLength": 1 }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "Safety rule 2: on a genuinely open or unknown problem, you may not instruct the run to assume a solution exists AND demand a complete artifact. Force strongest-partial-allowed.",
+      "if": {
+        "required": ["success"],
+        "properties": {
+          "success": {
+            "required": ["existenceAssumption"],
+            "properties": { "existenceAssumption": { "enum": ["open-question", "unknown"] } }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "success": {
+            "properties": { "returnPolicy": { "const": "strongest-partial-allowed" } }
+          }
+        }
+      }
+    },
+    {
+      "description": "Consistency 3a: manual/none oracle kinds carry no soundness.",
+      "if": {
+        "required": ["verification"],
+        "properties": {
+          "verification": {
+            "required": ["verifier"],
+            "properties": {
+              "verifier": {
+                "required": ["kind"],
+                "properties": { "kind": { "enum": ["manual", "none"] } }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "verification": {
+            "properties": {
+              "verifier": {
+                "properties": { "soundness": { "const": "none" } }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "Consistency 3b: soundness=none is reserved for manual/none kinds (a runnable oracle is either sound or statistical).",
+      "if": {
+        "required": ["verification"],
+        "properties": {
+          "verification": {
+            "required": ["verifier"],
+            "properties": {
+              "verifier": {
+                "required": ["soundness"],
+                "properties": { "soundness": { "const": "none" } }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "verification": {
+            "properties": {
+              "verifier": {
+                "properties": { "kind": { "enum": ["manual", "none"] } }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "Consistency 3c: a backtest is statistical by construction — passing it is evidence, not proof — so it can never be marked 'sound', hence can never reach complete-only via rule 1.",
+      "if": {
+        "required": ["verification"],
+        "properties": {
+          "verification": {
+            "required": ["verifier"],
+            "properties": {
+              "verifier": {
+                "required": ["kind"],
+                "properties": { "kind": { "const": "backtest" } }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "verification": {
+            "properties": {
+              "verifier": {
+                "properties": { "soundness": { "const": "statistical" } }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "Rule 4: any runnable oracle (soundness sound or statistical) MUST carry a non-empty command AND at least one artifactToVerify path. The runner writes the candidate artifact(s) and executes the command; a mechanical verifier missing either would leave run.md Step 4 undefined.",
+      "if": {
+        "required": ["verification"],
+        "properties": {
+          "verification": {
+            "required": ["verifier"],
+            "properties": {
+              "verifier": {
+                "required": ["soundness"],
+                "properties": { "soundness": { "enum": ["sound", "statistical"] } }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "verification": {
+            "properties": {
+              "verifier": {
+                "required": ["command", "artifactToVerify"],
+                "properties": { "command": { "type": "string", "minLength": 1 } }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "Rule 5: a 'statistical' or 'none' check MUST state its ceiling — what it cannot establish. This is what stops 'best available' from being read as 'good enough': a weak check may only be recorded alongside an explicit statement of the wrongness it will not catch.",
+      "if": {
+        "required": ["verification"],
+        "properties": {
+          "verification": {
+            "required": ["verifier"],
+            "properties": {
+              "verifier": {
+                "required": ["soundness"],
+                "properties": { "soundness": { "enum": ["statistical", "none"] } }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "verification": {
+            "properties": {
+              "verifier": {
+                "required": ["ceiling"],
+                "properties": { "ceiling": { "type": "string", "minLength": 1 } }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

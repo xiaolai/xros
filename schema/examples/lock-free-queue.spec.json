@@ -1,0 +1,155 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "lock-free-queue-linearizable",
+  "title": "Prove a proposed MPMC lock-free queue is linearizable",
+  "domain": "distributed-systems",
+  "provenance": {
+    "derivedFrom": "openai-cdc-v2",
+    "notes": "Chosen because it is genuinely hard, yet a model checker gives an independent mechanical oracle — the property that lets returnPolicy be complete-only. Contrast with 'startup strategy', which has no such oracle and would be forced to strongest-partial-allowed."
+  },
+  "objective": {
+    "ontology": [
+      {
+        "term": "linearizable",
+        "definition": "Every concurrent history is equivalent to some legal sequential history in which each operation appears to take effect atomically at a single instant between its invocation and its response."
+      },
+      {
+        "term": "MPMC queue",
+        "definition": "A FIFO queue with multiple concurrent producers and consumers."
+      },
+      {
+        "term": "linearization point",
+        "definition": "The single instant at which an operation's effect becomes visible to all threads."
+      }
+    ],
+    "claim": "The proposed enqueue/dequeue algorithm (see artifactToVerify) is linearizable under a sequentially consistent memory model within the bounded model checked by TLC: up to 3 concurrent producers, up to 3 concurrent consumers, and queue capacity 4. The unbounded case is explicitly out of scope (see nonGoals).",
+    "claimFormalization": "TLA+ property: Spec => Linearizable, checked exhaustively by TLC over the bounded model (<= 3 producers, <= 3 consumers, queue capacity 4). TLC over the full bounded state space is SOUND for this bounded claim."
+  },
+  "success": {
+    "successCriterion": "A machine-checked TLA+ model of the algorithm for which TLC reports no violation of the Linearizable property across the FULL bounded state space (<= 3 producers, <= 3 consumers, capacity 4) with no state-space truncation.",
+    "nonGoals": [
+      "Passing stress tests or fuzzing — observing no failure is not a proof of linearizability.",
+      "Linearizability of only enqueue OR only dequeue in isolation.",
+      "A model that silently assumes a single producer or single consumer.",
+      "Correctness under a stronger memory model than the one claimed, presented as if it settled the claim.",
+      "Extrapolating the bounded TLC result to unbounded producers/consumers — the bounded model check does not establish the unbounded claim, and this spec deliberately does not assert it."
+    ],
+    "existenceAssumption": "assume-solution-exists",
+    "returnPolicy": "complete-only"
+  },
+  "search": {
+    "approaches": [
+      {
+        "name": "explicit-linearization-points",
+        "family": "operational",
+        "lens": "Assign a concrete linearization point to each op and prove histories reorder to it.",
+        "provenance": "user"
+      },
+      {
+        "name": "refinement-mapping",
+        "family": "refinement",
+        "lens": "Build a refinement mapping from the implementation spec to an atomic-queue spec.",
+        "provenance": "user"
+      },
+      {
+        "name": "separation-logic-invariant",
+        "family": "program-logic",
+        "lens": "Derive a rely-guarantee / concurrent-separation-logic invariant that entails linearizability.",
+        "seedIdea": "Track per-node ownership transfer on the CAS that publishes a node.",
+        "provenance": "user"
+      },
+      {
+        "name": "happens-before-order",
+        "family": "memory-model",
+        "lens": "Reason directly over the happens-before relation induced by the CAS/load-acquire edges.",
+        "provenance": "user"
+      }
+    ],
+    "independenceRounds": 2,
+    "maxConcurrentAgents": 8,
+    "crossPollinationRule": "After round 2, let the refinement-mapping route borrow linearization points found by the operational route, but only once each has an independently checked partial model.",
+    "blockedRouteReopenRule": "Reopen a blocked route only when a new invariant or a new linearization-point assignment is proposed — not merely a re-run of TLC on the same model.",
+    "antiProgressRules": [
+      "A model that restricts to <= 1 producer or <= 1 consumer is equivalent in strength to a much weaker claim and does not count as progress.",
+      "'TLC found no violation at capacity 1' is not progress toward the general bounded claim."
+    ],
+    "requiredArtifacts": [
+      "A concrete linearization-point assignment for enqueue and dequeue.",
+      "A complete TLA+ module (the artifactToVerify).",
+      "For any refuted candidate, the TLC counterexample trace."
+    ]
+  },
+  "verification": {
+    "adversarialChecklist": [
+      {
+        "failureMode": "ABA problem masquerading as a valid CAS success.",
+        "check": "Add a version/tag to pointers in the model and re-check that the CAS still linearizes.",
+        "provenance": "user"
+      },
+      {
+        "failureMode": "Lost-enqueue when tail lags behind the true last node.",
+        "check": "Assert the model advances tail before returning, or that a helper does; look for a trace where a node is unreachable.",
+        "provenance": "assistant-proposed"
+      },
+      {
+        "failureMode": "Dequeue returning a node still logically owned by a producer.",
+        "check": "Model per-node ownership and assert no two ops claim the same node.",
+        "provenance": "user"
+      },
+      {
+        "failureMode": "Linearization point placed outside the [invocation, response] interval.",
+        "check": "Assert each chosen point lies within its operation's interval in every history.",
+        "provenance": "user"
+      }
+    ],
+    "verificationVotes": 3,
+    "verifier": {
+      "kind": "reproducible-experiment",
+      "soundness": "sound",
+      "tool": "tlc",
+      "command": "tlc -deadlock -workers auto LockFreeQueue.tla -config LockFreeQueue.cfg",
+      "artifactToVerify": [
+        "LockFreeQueue.tla",
+        "LockFreeQueue.cfg"
+      ],
+      "passCondition": {
+        "exitCodes": [
+          0
+        ],
+        "stdoutContains": [
+          "no error"
+        ],
+        "stdoutAbsent": [
+          "truncated"
+        ]
+      },
+      "ceiling": "Sound only for the stated bound (<=3 producers, <=3 consumers, capacity 4). It establishes nothing about the unbounded case, which is deliberately out of scope (see nonGoals).",
+      "notes": "The runner executes this and gates on exit code; a passing agent claim without a passing TLC run is rejected."
+    }
+  },
+  "stopping": {
+    "minRounds": 3,
+    "maxRounds": 12,
+    "budgetTokens": 4000000,
+    "convergenceRule": {
+      "consecutiveEmptyRounds": 2
+    }
+  },
+  "toolPolicy": {
+    "webSearch": "background-only",
+    "forbiddenLookups": [
+      "whether this specific queue algorithm is already published as linearizable",
+      "existing TLA+ models of this exact algorithm"
+    ],
+    "allowedTools": [
+      "Bash",
+      "Read",
+      "Write"
+    ]
+  },
+  "execution": {
+    "preview": true,
+    "isolation": "worktree",
+    "agentEffort": "high"
+  }
+}

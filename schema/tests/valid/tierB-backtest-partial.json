@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "tierb-momentum-backtest",
+  "title": "Tier B — statistical oracle (backtest), strongest-partial only",
+  "domain": "quantitative-finance",
+  "objective": {
+    "ontology": [
+      {
+        "term": "Sharpe",
+        "definition": "annualized mean excess return divided by its standard deviation"
+      },
+      {
+        "term": "held-out period",
+        "definition": "a date range never touched during signal construction"
+      }
+    ],
+    "claim": "Signal S yields out-of-sample Sharpe > 1 on the pre-registered held-out period."
+  },
+  "success": {
+    "successCriterion": "A strategy whose held-out backtest reports Sharpe > 1, with an argued reason the result is not an artifact of overfitting.",
+    "nonGoals": [
+      "In-sample Sharpe > 1 — curve fitting, not evidence of generalization.",
+      "A single lucky held-out window presented as robust across regimes."
+    ],
+    "existenceAssumption": "open-question",
+    "returnPolicy": "strongest-partial-allowed"
+  },
+  "search": {
+    "approaches": [
+      {
+        "name": "momentum",
+        "family": "trend",
+        "lens": "cross-sectional momentum",
+        "provenance": "user"
+      },
+      {
+        "name": "mean-reversion",
+        "family": "reversion",
+        "lens": "short-horizon reversal",
+        "provenance": "user"
+      },
+      {
+        "name": "carry",
+        "family": "carry",
+        "lens": "yield differential capture",
+        "provenance": "user"
+      }
+    ],
+    "requiredArtifacts": [
+      "a strategy specification",
+      "a reproducible backtest script"
+    ]
+  },
+  "verification": {
+    "adversarialChecklist": [
+      {
+        "failureMode": "lookahead bias",
+        "check": "confirm no future data enters signal computation at any timestamp",
+        "provenance": "user"
+      },
+      {
+        "failureMode": "overfit via repeated holdout peeking",
+        "check": "require a single pre-registered holdout evaluation, no re-runs",
+        "provenance": "user"
+      }
+    ],
+    "verificationVotes": 3,
+    "verifier": {
+      "kind": "backtest",
+      "soundness": "statistical",
+      "tool": "python",
+      "command": "python backtest.py --holdout",
+      "artifactToVerify": [
+        "strategy.py",
+        "backtest.py"
+      ],
+      "passCondition": {
+        "exitCodes": [
+          0
+        ],
+        "stdoutContains": [
+          "SHARPE>1"
+        ]
+      },
+      "ceiling": "A passing held-out backtest is evidence, not proof: it cannot rule out overfitting to that single window, a regime change after the sample, or transaction-cost and liquidity effects the model omits.",
+      "asOf": "2026-07-20",
+      "revisitIf": "a longer out-of-sample period becomes available, or the strategy is deployed and produces live returns to compare against."
+    }
+  },
+  "stopping": {
+    "minRounds": 2,
+    "maxRounds": 8,
+    "budgetTokens": 2000000,
+    "convergenceRule": {
+      "consecutiveEmptyRounds": 2
+    },
+    "giveUpCondition": "return the best surviving strategy after 2 consecutive empty rounds"
+  },
+  "toolPolicy": {
+    "webSearch": "background-only",
+    "forbiddenLookups": [
+      "whether this exact signal is already published"
+    ]
+  }
+}

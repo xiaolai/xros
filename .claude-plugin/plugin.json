@@ -1,0 +1,20 @@
+{
+  "name": "xros",
+  "version": "0.1.0",
+  "description": "Executable research operating system. Four commands: compile a long-horizon investigation into a verifiable methodology spec, sharpen an un-checkable question into a falsifiable claim with its best-available check, run the Tier-A/B multi-agent engine gated on a real oracle, or reason through a no-oracle (Tier-C) claim with premises, pre-mortem, and dated tripwires. Refuses to claim a verified result without a mechanical check.",
+  "author": {
+    "name": "xiaolai"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/xiaolai/xros-for-claude",
+  "repository": "https://github.com/xiaolai/xros-for-claude",
+  "category": "developer-tools",
+  "keywords": [
+    "research",
+    "verification",
+    "methodology",
+    "multi-agent",
+    "workflow",
+    "falsifiability"
+  ]
+}
