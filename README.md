@@ -2,7 +2,7 @@
 
 **XROS** = **eX**ecutable **R**esearch **O**perating **S**ystem.
 
-[![Validated by NLPM](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/xiaolai/xros-for-claude/main/nlpm-badge.json)](https://github.com/xiaolai/xros-for-claude/blob/main/nlpm-badge.json)
+[![Validated by NLPM](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/xiaolai/xros/main/nlpm-badge.json)](https://github.com/xiaolai/xros/blob/main/nlpm-badge.json)
 
 **Frame a question, then find out** — whether you arrive with a proof checker or with
 nothing but the question. XROS turns an investigation into a **verifiable methodology
