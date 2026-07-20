@@ -484,11 +484,12 @@ For **Tier B**, every reported result carries the `verifier.ceiling` and an
 overfitting caveat — a pass is evidence, never proof.
 
 **Provenance downgrade (recompute it here — don't trust the caller).** Count items
-across `search.approaches[].provenance` and `verification.adversarialChecklist[].provenance`.
-If a majority are `assistant-proposed`/`assistant-assumed` rather than `user`, state
-plainly that most of the spec's failure modes and approaches came from the assistant,
-not the user's own domain knowledge — so the run is only as good as those guesses and
-its verdict is lower-confidence. This repeats compile's warning so it survives the handoff.
+across `search.approaches[].provenance`, `verification.adversarialChecklist[].provenance`,
+and `objective.ontology[].provenance` (terms carried from a domain map). If a majority
+are `assistant-proposed`/`assistant-assumed` rather than `user`, state plainly that most
+of the spec's terms, failure modes, and approaches came from the assistant, not the
+user's own domain knowledge — so the run is only as good as those guesses and its
+verdict is lower-confidence. This repeats compile's warning so it survives the handoff.
 
 ## Known limitations (state honestly in the report when relevant)
 

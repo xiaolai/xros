@@ -94,7 +94,10 @@ not judge).
    rest of this walkthrough won't remind you again.
 1. **objective** — `ontology` (force a precise definition of every load-bearing
    term), one fully-quantified `claim`, optional `claimFormalization` (for Tier
-   A, tie it to what the oracle checks).
+   A, tie it to what the oracle checks). If a term came from an `xros:sharpen`
+   domain map, carry its `standing` / `sources` / `provenance` onto the ontology
+   item (the honesty group is all-or-nothing, and `canonical` needs ≥2 sources —
+   the validator enforces both).
 2. **success** — `successCriterion`; `nonGoals` (gate ↓); confirm
    `existenceAssumption` (if the user genuinely does not know the answer exists,
    it is `open-question`/`unknown` → schema forces `strongest-partial-allowed`);

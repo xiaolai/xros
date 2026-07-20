@@ -269,6 +269,16 @@ def semantic_gates(spec):
         a = verifier.get("asOf")
         if _date_shape(a) and not _real_date(a):
             errs.append(f"$.verification.verifier.asOf: '{a}' is not a real calendar date")
+    obj = spec.get("objective")
+    onto = obj.get("ontology") if isinstance(obj, dict) else None
+    if isinstance(onto, list):
+        for i, t in enumerate(onto):
+            if isinstance(t, dict) and t.get("standing") == "canonical":
+                srcs = t.get("sources")
+                n = len(srcs) if isinstance(srcs, list) else 0
+                if n < 2:
+                    errs.append(f"$.objective.ontology[{i}]: standing 'canonical' needs >= 2 corroborating sources, found {n}")
+
     dv = spec.get("deferredVerification")
     tws = dv.get("tripwires") if isinstance(dv, dict) else None
     if isinstance(tws, list):

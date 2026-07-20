@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "id": "tierb-momentum-backtest",
   "title": "Tier B — statistical oracle (backtest), strongest-partial only",
   "domain": "quantitative-finance",

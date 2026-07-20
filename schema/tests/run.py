@@ -172,7 +172,16 @@ structural = [
     ("enum: bad provenance value", example,
      lambda d: d["search"]["approaches"][0].__setitem__("provenance", "made-up")),
     ("enum: bad ontology standing value", example,
-     lambda d: d["objective"]["ontology"][0].__setitem__("standing", "made-up")),
+     lambda d: d["objective"]["ontology"][0].update(
+         {"standing": "made-up", "sources": ["u"], "provenance": "user"})),
+    ("enum: bad ontology provenance value", example,
+     lambda d: d["objective"]["ontology"][0].update(
+         {"standing": "coinage", "sources": ["u"], "provenance": "nope"})),
+    ("ontology standing without its sources+provenance group", example,
+     lambda d: d["objective"]["ontology"][0].__setitem__("standing", "coinage")),
+    ("ontology empty source string", example,
+     lambda d: d["objective"]["ontology"][0].update(
+         {"standing": "coinage", "sources": [""], "provenance": "user"})),
     ("bad asOf date format", example,
      lambda d: d["verification"]["verifier"].__setitem__("asOf", "July 20")),
     ("deferredVerification tripwire missing owner",
@@ -225,6 +234,9 @@ semantic = [
     ("tripwire byWhen impossible date (2026-13-40)",
      json.load(open(os.path.join(HERE, "valid", "tierC-manual-partial.json"), encoding="utf-8")),
      lambda d: d["deferredVerification"]["tripwires"][0].__setitem__("byWhen", "2026-13-40")),
+    ("ontology 'canonical' with fewer than 2 sources", example,
+     lambda d: d["objective"]["ontology"][0].update(
+         {"standing": "canonical", "sources": ["only-one"], "provenance": "user"})),
 ]
 print("\nSEMANTIC gates (bundled validator REJECTS; jsonschema alone would accept):")
 for name, base, fn in semantic:
@@ -349,10 +361,14 @@ cases = [
     ("sound check may omit ceiling",
      mutate(example, lambda d: d["verification"]["verifier"].pop("ceiling")),
      lambda d: xv_errors(d) == 0 and ((js_errors(d) == 0) if HAVE_JS else True)),
-    # ontology terms may carry the optional domain-map honesty fields
-    ("ontology term may carry standing/source/provenance",
+    # ontology terms may carry the optional domain-map honesty group
+    ("ontology term: coinage + 1 source + provenance is valid",
      mutate(example, lambda d: d["objective"]["ontology"][0].update(
-         {"standing": "canonical", "source": "https://example.org/x", "provenance": "assistant-proposed"})),
+         {"standing": "coinage", "sources": ["https://example.org/x"], "provenance": "assistant-assumed"})),
+     lambda d: xv_errors(d) == 0 and ((js_errors(d) == 0) if HAVE_JS else True)),
+    ("ontology term: canonical + 2 sources is valid",
+     mutate(example, lambda d: d["objective"]["ontology"][0].update(
+         {"standing": "canonical", "sources": ["https://a.example", "https://b.example"], "provenance": "user"})),
      lambda d: xv_errors(d) == 0 and ((js_errors(d) == 0) if HAVE_JS else True)),
 ]
 for name, d, pred in cases:

@@ -1,4 +1,6 @@
-# XROS — an executable research operating system
+# XROS — an eXecutable Research Operating System
+
+**XROS** = **eX**ecutable **R**esearch **O**perating **S**ystem.
 
 [![Validated by NLPM](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/xiaolai/xros-for-claude/main/nlpm-badge.json)](https://github.com/xiaolai/xros-for-claude/blob/main/nlpm-badge.json)
 
@@ -47,6 +49,29 @@ built for the step before that. The arc is **expand → frame → check**:
   to refute each result, and only a real check (`run`) or honest tripwires (`reason`)
   close it out.
 
+### Why "expand" is a new learning paradigm
+
+The old way to learn a field is to search with the words you already have and narrow
+toward an answer. In an unfamiliar field that fails *silently*: you can't search for `fabula` or
+`syuzhet` if you've never heard the word, and the gap is invisible to you — an unknown
+unknown feels exactly like knowing everything.
+
+Expanding search scope inverts the move. **Before** narrowing, you ask the field for its
+minimal set of load-bearing **nouns** (what you can ask about) and **verbs** (what you
+can do), and get back the handles that let you form a question at all. It is
+**expand-then-narrow**, not narrow-only — and one cheap query converts a wall of unknown
+unknowns into a short list of known unknowns, which is the exact moment a real inquiry
+can begin. (This is the move that "kick-starts" newcomers: hand someone *fabula*,
+*syuzhet*, and *information control* and they can suddenly ask real questions about
+storytelling.)
+
+Two things make it a paradigm shift, not a trick: an AI can draw the map cheaply — a
+fraction of the old cost of acquiring a field's vocabulary — so expanding scope first is
+now a rational opening move in an unfamiliar field; and XROS keeps it honest — the
+`orient` step grades each term canonical/coinage/contested, cites it, and drops any it
+cannot attest, and once a graded term enters a spec the schema enforces its sources (a
+`canonical` term needs two). The map is a scaffold for asking, never mistaken for mastery.
+
 Where you stand decides which command runs:
 
 ```mermaid
@@ -59,15 +84,21 @@ flowchart TD
   K -->|"only a check for EVIDENCE"| B["Tier B · xros:run<br/>evidence, never proof"]
   K -->|"not yet, but it is a real question"| S["xros:sharpen · frame + discover<br/>find the best available check"]
   K -->|"I cannot even frame it"| S
-  S -->|"a check clears the bar"| A
-  S -->|"none does"| C["Tier C · xros:reason<br/>premises + tripwires · UNVERIFIED"]
+  S -->|"sound check found"| A
+  S -->|"statistical check found"| B
+  S -->|"none clears the bar"| C["Tier C · xros:reason<br/>premises + tripwires · UNVERIFIED"]
   K -->|"it is a values question"| C
 ```
 
 ## The four commands
 
-| Command | The move |
-|---------|----------|
+Four commands cover the whole arc. If the field is new to you, start at `sharpen`; if
+you can already state the question and how you'd check it, start at `compile`; `run`
+*checks* a Tier-A/B result, while `reason` structures an explicitly **unverified**
+Tier-C decision (premises + future tripwires) — it does not settle the claim now.
+
+| Command | What it does for you |
+|---------|----------------------|
 | `/xros:compile` | Interview → a validated spec. Asks, in plain language, how you would check an answer *before* anything else; hands off to `sharpen` when you can't |
 | `/xros:sharpen` | **Orient → frame → discover.** Maps an unfamiliar field's minimal vocabulary (the nouns you can ask about, the verbs you can do), turns a vague question into a falsifiable claim, then finds the **currently best available** check (with a plain statement of what it *cannot* establish), or an honest "no check clears the soundness bar" |
 | `/xros:run` | Tier A/B spec → a multi-agent Workflow (independent routes, adversarial refutation, counterexample-fed loop) → runs your check and gates on its exit code. A Tier-C spec is redirected to `xros:reason` — the engine never runs without a check |
