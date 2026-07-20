@@ -156,7 +156,8 @@ rule it claims to.
 
 ## Status
 
-v0.1.0 — all four commands ship. The schema, the validator, and the conformance suite are
+v0.2.0 — all four commands ship (compile, sharpen with the orient step, run, reason). The
+schema, the validator, and the conformance suite are
 the load-bearing, tested parts; the command bodies are natural-language programs whose
 rigor rests on their instructions (and on the reviews that hardened them). No spec has
 been driven end-to-end through a live `run`, so treat the orchestration as
