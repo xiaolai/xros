@@ -6,10 +6,11 @@
 
 XROS is a **plugin for AI coding agents** — you install it into your assistant and drive
 it with four slash commands (`/xros:compile`, `/xros:sharpen`, `/xros:run`,
-`/xros:reason`). The commands ship for **Claude Code** today; the core they stand on — a
-JSON spec, a dependency-free validator, and a conformance suite — is provider-neutral, so
-the methodology travels even where the commands don't. Jump to [Install](#install) and
-[Using XROS](#using-xros), or read on for what it does.
+`/xros:reason`). The one-command install and slash commands are for **Claude Code** today;
+the core they stand on — a JSON spec, a dependency-free validator, and plain-English
+protocols — is provider-neutral and works under **Codex, Antigravity, Grok**, and other
+agents too (see [Works with other AI agents](#works-with-other-ai-agents-codex-antigravity-grok)).
+Jump to [Install](#install) and [Using XROS](#using-xros), or read on for what it does.
 
 **Frame a question, then find out** — whether you arrive with a proof checker or with
 nothing but the question. XROS turns an investigation into a **verifiable methodology
@@ -168,6 +169,46 @@ python3 schema/tools/xros_validate.py schema/xros-spec.schema.json <your-spec>.j
 
 Worked specs — one per tier — live in `schema/examples/` and `schema/tests/valid/` to
 copy from.
+
+## Works with other AI agents (Codex, Antigravity, Grok)
+
+The one-command install and the slash commands are **Claude Code** today — but nothing
+that *does the verifying* is tied to Claude. XROS has three layers, with different
+portability:
+
+| Layer | What it is | Portable? |
+|-------|-----------|-----------|
+| **Verification core** | `schema/xros-spec.schema.json` + `schema/tools/xros_validate.py` (stdlib Python, offline, no deps) + worked example specs | **Fully.** Runs under any tool on any OS with Python 3. This is the gate that enforces *no verification, no claim* — it does not care which AI wrote the spec. |
+| **Protocols** | `commands/compile.md` and `commands/reason.md` — the interview and the Tier-C reasoning procedure | **Fully.** Plain-English procedures any capable agent can follow step by step. |
+| **Multi-agent engine** | the fan-out inside `commands/run.md` and `commands/sharpen.md` | **Claude-native today** — built on Claude Code's Workflow tool. Other agents run the same portfolio-of-routes protocol with *their own* orchestration, or single-threaded. **The gate (the validator's exit code) is identical everywhere;** only the fan-out mechanism differs. |
+
+**The universal recipe — any agent:**
+
+1. **Vendor the repo** into your project (clone it, or add it as a git submodule).
+2. **Point your agent at the protocol.** XROS ships an [`AGENTS.md`](AGENTS.md) — the
+   cross-tool [agents.md](https://agents.md) conventions file — so an agent that reads it
+   gets oriented, then opens `commands/compile.md` (or `commands/reason.md`) and follows
+   the same interview → spec arc. For a tool that reads a different filename, `@`-reference
+   or paste the command file directly.
+3. **Enforce the gate exactly as XROS does** — run the tool-neutral validator and treat a
+   non-zero exit as *unverified*:
+   ```bash
+   python3 schema/tools/xros_validate.py schema/xros-spec.schema.json <your-spec>.json
+   ```
+
+**Per tool, concretely:**
+
+- **OpenAI Codex CLI** — reads the `AGENTS.md` this repo already ships; run the validator
+  in its shell. A native Codex plugin port (`.codex-plugin/` + a `codex/` tree, like the
+  sibling `grill` / `nlpm` plugins) is the natural next step but is **not yet built**.
+- **Google Antigravity** — reads its own project-instructions / `.agent` conventions;
+  point it at `commands/*.md` and run the same validator. No native package yet.
+- **xAI Grok (`grok-cli`)** — reads `AGENTS.md`; same protocol + same validator. No native
+  package yet.
+
+Bottom line: **the methodology and its enforcement are provider-neutral and work today on
+any agent; only the one-command install and the built-in multi-agent engine are Claude
+Code-only for now.** That is exactly why the repo is `xros`, not `xros-for-claude`.
 
 ## The tier model — the safety mechanism
 
