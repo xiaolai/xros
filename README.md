@@ -225,7 +225,7 @@ One repo, four native installs. The four capabilities are expressed on two surfa
 
 | Surface | Host | Artifacts |
 |---------|------|-----------|
-| Slash commands | Claude Code | `commands/*.md` |
+| Slash commands | Claude Code | `claude/commands/*.md` |
 | Skills | Codex · Antigravity · Grok | `skills/xros-*/SKILL.md` |
 
 `skills/` is a **single shared tree**: Codex, Antigravity, and Grok all implement the

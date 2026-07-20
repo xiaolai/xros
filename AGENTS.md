@@ -20,16 +20,16 @@ a `statistical`/`none` check can never request `complete-only` and must state a
 
 | Capability | Claude Code (slash command) | Codex / Antigravity / Grok (skill) |
 |------------|-----------------------------|------------------------------------|
-| Oracle-first interview → a validated spec | `commands/compile.md` | `skills/xros-compile/` |
-| Orient (map a field's nouns/verbs) → falsifiable claim → best-available check | `commands/sharpen.md` | `skills/xros-sharpen/` |
-| Tier-A/B engine, gated on the check's exit code | `commands/run.md` | `skills/xros-run/` |
-| Tier-C path: premises, pre-mortem, dated tripwires; UNVERIFIED | `commands/reason.md` | `skills/xros-reason/` |
+| Oracle-first interview → a validated spec | `claude/commands/compile.md` | `skills/xros-compile/` |
+| Orient (map a field's nouns/verbs) → falsifiable claim → best-available check | `claude/commands/sharpen.md` | `skills/xros-sharpen/` |
+| Tier-A/B engine, gated on the check's exit code | `claude/commands/run.md` | `skills/xros-run/` |
+| Tier-C path: premises, pre-mortem, dated tripwires; UNVERIFIED | `claude/commands/reason.md` | `skills/xros-reason/` |
 
 ## Layout — one repo, four hosts
 
 | Host | Manifest | Reads |
 |------|----------|-------|
-| Claude Code | `.claude-plugin/plugin.json` | `commands/` (slash commands) |
+| Claude Code | `.claude-plugin/plugin.json` (declares `"commands": "./claude/commands/"`) | `claude/commands/` (slash commands) |
 | OpenAI Codex | `.codex-plugin/plugin.json` (`"skills": "./skills/"`) | `skills/` |
 | Google Antigravity | `plugin.json` **at the repo root** (required by `agy plugin install`) | `skills/`, `rules/` |
 | xAI Grok | `.grok-plugin/plugin.json` | `skills/` |
@@ -41,7 +41,21 @@ skill bodies **tool-neutral** — no `$ARGUMENTS`, no Claude Workflow scripts, n
 model names, no `CLAUDE_PLUGIN_ROOT` except as a documented fallback. Anything
 host-specific belongs in a manifest, not in a skill body.
 
-`commands/` (Claude) and `skills/` (everyone else) express the same four
+**Why `claude/commands/` and not `commands/`.** Antigravity and Grok auto-discover a
+root `commands/` directory and convert its files into skills — which would expose the
+Claude-only Workflow scripts on hosts that cannot execute them, under generic names
+(`compile`, `run`) that collide in Grok's global skill namespace. Declaring
+`"commands"` in the Claude manifest **replaces** the default `commands/` scan, so
+Claude still finds them and the other hosts no longer see them. Verified with
+`agy plugin validate` (`commands: skipped`) and `grok plugin validate`
+(`0 command dir(s)`).
+
+Note the asymmetry: a custom `skills` path *adds to* the default scan rather than
+replacing it, so Claude always scans root `skills/` too. The four portable skills
+therefore also appear on Claude alongside the four commands. That redundancy is
+accepted deliberately — Claude keeps the stronger Workflow engine at `/xros:run`.
+
+`claude/commands/` (Claude) and `skills/` (everyone else) express the same four
 capabilities and **must be kept in behavioural sync**. The Claude commands may use
 the Workflow engine directly; the skills describe the same algorithm as a protocol
 the host executes with its own sub-agents — or sequentially, which is weaker
@@ -70,7 +84,7 @@ independence and must be reported as such.
 - **git** — required only for `execution.isolation: "worktree"`, which verifies a
   candidate in a clean checkout.
 - **Node.js** — used only during development, to syntax-check the embedded Workflow
-  scripts inside `commands/run.md` and `commands/sharpen.md`.
+  scripts inside `claude/commands/run.md` and `claude/commands/sharpen.md`.
 
 ## Working here
 

@@ -321,7 +321,7 @@ check("_real_date accepts leap Feb 29", xv._real_date("2024-02-29"))
 # run.md's agent-produced CANDIDATE path must carry an anti-traversal pattern
 # (defense-in-depth so a hostile route agent's path is rejected at the output layer).
 print("\nrun.md CANDIDATE.artifactFiles path guard:")
-_runmd = open(os.path.join(HERE, "..", "..", "commands", "run.md"), encoding="utf-8").read()
+_runmd = open(os.path.join(HERE, "..", "..", "claude", "commands", "run.md"), encoding="utf-8").read()
 check("CANDIDATE path carries a pattern in run.md",
       re.search(r"path:\s*\{\s*type:\s*'string',\s*pattern:", _runmd) is not None)
 # the intended anti-traversal semantics (Python-re equivalent of the shipped ECMA regex)
@@ -330,6 +330,23 @@ check("  intended pattern accepts safe relative paths",
       all(_intended.match(g) for g in ["a.tla", "src/b.lean", "LockFreeQueue.cfg"]))
 check("  intended pattern rejects absolute/~/traversal/drive/backslash/dot",
       not any(_intended.match(b) for b in ["/etc/passwd", "~/x", "../escape", "a/../b", "C:\\x", "a\\b", "."]))
+
+# The ported skill carries the SAME guard in prose. The two surfaces (Claude commands,
+# portable skills) must stay in behavioural sync; a port that silently dropped the
+# anti-traversal rule would be a real regression the regex test above cannot catch.
+print("\nported skill parity (skills/xros-run):")
+_skill_raw = open(os.path.join(HERE, "..", "..", "skills", "xros-run", "SKILL.md"), encoding="utf-8").read()
+# collapse wrapping so a hard-wrapped sentence still matches
+_skill = re.sub(r"\s+", " ", _skill_raw)
+check("skill requires relative-only artifact paths", "relative paths only" in _skill)
+check("skill rejects absolute / ~ / .. in paths",
+      re.search(r"reject any absolute path", _skill) is not None)
+check("skill re-validates paths before writing",
+      "resolves inside the candidate directory" in _skill)
+check("skill keeps the oracle exit code authoritative",
+      "exit code" in _skill and "authoritative" in _skill)
+check("skill ships no un-runnable Claude Workflow script",
+      "```js" not in _skill_raw and "$ARGUMENTS" not in _skill_raw)
 
 # ------------------------------------------------------------ 6. robustness
 print("\nrobustness (malformed input → clean INVALID, never a traceback):")
