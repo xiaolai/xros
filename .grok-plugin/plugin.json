@@ -1,0 +1,19 @@
+{
+  "name": "xros",
+  "version": "0.3.0",
+  "description": "Executable research operating system. Four skills: compile a long-horizon investigation into a verifiable methodology spec, sharpen an un-checkable question into a falsifiable claim with its best-available check, run the Tier-A/B engine gated on a real oracle, or reason through a no-oracle (Tier-C) claim with premises, pre-mortem, and dated tripwires. Refuses to claim a verified result without a mechanical check.",
+  "author": {
+    "name": "xiaolai",
+    "url": "https://github.com/xiaolai"
+  },
+  "homepage": "https://github.com/xiaolai/xros",
+  "repository": "https://github.com/xiaolai/xros",
+  "license": "MIT",
+  "keywords": [
+    "research",
+    "verification",
+    "methodology",
+    "falsifiability",
+    "multi-agent"
+  ]
+}

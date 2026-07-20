@@ -1,0 +1,37 @@
+{
+  "name": "xros",
+  "version": "0.3.0",
+  "description": "Executable research operating system. Four skills: compile a long-horizon investigation into a verifiable methodology spec, sharpen an un-checkable question into a falsifiable claim with its best-available check, run the Tier-A/B search engine gated on a real oracle, or reason through a no-oracle (Tier-C) claim with premises, pre-mortem, and dated tripwires. Refuses to claim a verified result without a mechanical check.",
+  "author": {
+    "name": "xiaolai"
+  },
+  "homepage": "https://github.com/xiaolai/xros",
+  "repository": "https://github.com/xiaolai/xros",
+  "license": "MIT",
+  "keywords": [
+    "research",
+    "verification",
+    "methodology",
+    "multi-agent",
+    "falsifiability"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "XROS",
+    "shortDescription": "Turn a question into a verifiable spec, then gate the verdict on a real check",
+    "longDescription": "XROS is an eXecutable Research Operating System. It turns an investigation into a verifiable methodology spec, runs it against a real check, and gates the verdict on that check's exit code. Its one rule is 'no verification, no claim': a result is reported as verified only when a mechanical check actually passed. Where no such check exists, XROS says so and refuses the strong mode instead of producing confident text with nothing anchoring it. A three-tier model is enforced by the bundled schema and validator — a sound oracle (Tier A) may return a verified complete result, a statistical check (Tier B) yields evidence only, and no check (Tier C) is routed to structured reasoning labeled UNVERIFIED. Newcomers can start from a bare domain: the sharpen skill maps a field's minimal vocabulary before framing anything.",
+    "developerName": "xiaolai",
+    "category": "Coding",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Compile my research question into an XROS spec with $xros-compile.",
+      "I don't know this field yet — orient me and find a real check with $xros-sharpen.",
+      "Run this XROS spec and gate the verdict on its oracle with $xros-run."
+    ],
+    "websiteURL": "https://github.com/xiaolai/xros",
+    "screenshots": []
+  }
+}

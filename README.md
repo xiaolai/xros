@@ -5,12 +5,11 @@
 [![Validated by NLPM](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/xiaolai/xros/main/nlpm-badge.json)](https://github.com/xiaolai/xros/blob/main/nlpm-badge.json)
 
 XROS is a **plugin for AI coding agents** — you install it into your assistant and drive
-it with four slash commands (`/xros:compile`, `/xros:sharpen`, `/xros:run`,
-`/xros:reason`). The one-command install and slash commands are for **Claude Code** today;
-the core they stand on — a JSON spec, a dependency-free validator, and plain-English
-protocols — is provider-neutral and works under **Codex, Antigravity, Grok**, and other
-agents too (see [Works with other AI agents](#works-with-other-ai-agents-codex-antigravity-grok)).
-Jump to [Install](#install) and [Using XROS](#using-xros), or read on for what it does.
+it with four capabilities: **compile**, **sharpen**, **run**, and **reason**. It installs
+natively on **Claude Code, OpenAI Codex, Google Antigravity, and xAI Grok** from this one
+repo — as slash commands on Claude Code (`/xros:run`), as skills everywhere else
+(`$xros-run`). Jump to [Install](#install), [Using XROS](#using-xros), or
+[how it travels across hosts](#how-it-travels-across-hosts) — or read on for what it does.
 
 **Frame a question, then find out** — whether you arrive with a proof checker or with
 nothing but the question. XROS turns an investigation into a **verifiable methodology
@@ -23,8 +22,13 @@ code.
 
 ## Install
 
-XROS is distributed through the **xiaolai marketplace**. Add the marketplace once, then
-install the plugin:
+XROS ships as **one repo that four hosts can install natively**. Pick yours.
+
+Everything requires **Python 3** (standard library only) for the bundled validator —
+no `jsonschema`, no `npx`, no network. Restart the host after installing so the four
+capabilities register.
+
+### Claude Code
 
 ```bash
 claude plugin marketplace add xiaolai/claude-plugin-marketplace
@@ -41,9 +45,53 @@ claude plugin install xros@xiaolai --scope project   # or --scope user
 | **Project** | `claude plugin install xros@xiaolai --scope project` | Shared with your team via `.claude/settings.json` |
 | **Local** | `claude plugin install xros@xiaolai --scope local` | Only you, only this repo |
 
-Requires **Python 3** (stdlib only) for the bundled validator and test suite — no
-`jsonschema`, no `npx`, no network. Restart Claude Code after installing so the four
-commands register.
+### OpenAI Codex
+
+Codex installs from a marketplace through an **in-session TUI**, not a shell verb.
+Register the marketplace once in your shell:
+
+```bash
+codex plugin marketplace add xiaolai/claude-plugin-marketplace
+```
+
+Then open Codex and run `/plugins`, pick **xros**, and start a new session so its
+skills load.
+
+### Google Antigravity
+
+Antigravity installs a plugin straight from its Git repo (requires Antigravity CLI
+**1.1.0+**):
+
+```bash
+agy plugin install https://github.com/xiaolai/xros
+agy plugin list
+```
+
+Pin to a release by cloning the tag first, then installing the local checkout:
+
+```bash
+git clone --branch v0.3.0 --depth 1 https://github.com/xiaolai/xros.git
+agy plugin install ./xros
+```
+
+### xAI Grok
+
+Grok installs directly from GitHub. `--trust` is required:
+
+```bash
+grok plugin install xiaolai/xros --trust
+grok plugin list
+```
+
+Or pin it, which is the safer habit:
+
+```bash
+grok plugin install xiaolai/xros@v0.3.0 --trust
+```
+
+Grok also reads Claude Code marketplaces automatically, so if you already have the
+`xiaolai` marketplace registered you can simply `grok plugin install xros --trust`.
+Each skill becomes a slash command — `/xros-run <spec>.json`.
 
 ## Who it's for
 
@@ -138,10 +186,11 @@ Tier-C decision (premises + future tripwires) — it does not settle the claim n
 
 ## Using XROS
 
-Once installed, you invoke the commands as **slash commands inside your assistant** —
-type `/xros:` and the four commands appear. You don't run a binary or edit config; you
-talk to the command and it interviews you. Where you start depends on where you stand
-(the map above decides it):
+Once installed, you invoke XROS **inside your assistant** — on Claude Code type `/xros:`
+and the four commands appear; on Codex, Antigravity, and Grok they are skills, invoked as
+`$xros-run` (Grok also exposes each as a slash command, `/xros-run`). You don't run a
+binary or edit config; you talk to it and it interviews you. Where you start depends on
+where you stand (the map above decides it):
 
 ```text
 /xros:sharpen     # new to the field, or can't yet say how you'd check an answer:
@@ -170,45 +219,38 @@ python3 schema/tools/xros_validate.py schema/xros-spec.schema.json <your-spec>.j
 Worked specs — one per tier — live in `schema/examples/` and `schema/tests/valid/` to
 copy from.
 
-## Works with other AI agents (Codex, Antigravity, Grok)
+## How it travels across hosts
 
-The one-command install and the slash commands are **Claude Code** today — but nothing
-that *does the verifying* is tied to Claude. XROS has three layers, with different
-portability:
+One repo, four native installs. The four capabilities are expressed on two surfaces:
 
-| Layer | What it is | Portable? |
-|-------|-----------|-----------|
-| **Verification core** | `schema/xros-spec.schema.json` + `schema/tools/xros_validate.py` (stdlib Python, offline, no deps) + worked example specs | **Fully.** Runs under any tool on any OS with Python 3. This is the gate that enforces *no verification, no claim* — it does not care which AI wrote the spec. |
-| **Protocols** | `commands/compile.md` and `commands/reason.md` — the interview and the Tier-C reasoning procedure | **Fully.** Plain-English procedures any capable agent can follow step by step. |
-| **Multi-agent engine** | the fan-out inside `commands/run.md` and `commands/sharpen.md` | **Claude-native today** — built on Claude Code's Workflow tool. Other agents run the same portfolio-of-routes protocol with *their own* orchestration, or single-threaded. **The gate (the validator's exit code) is identical everywhere;** only the fan-out mechanism differs. |
+| Surface | Host | Artifacts |
+|---------|------|-----------|
+| Slash commands | Claude Code | `commands/*.md` |
+| Skills | Codex · Antigravity · Grok | `skills/xros-*/SKILL.md` |
 
-**The universal recipe — any agent:**
+`skills/` is a **single shared tree**: Codex, Antigravity, and Grok all implement the
+same `skills/<name>/SKILL.md` contract, so the same four files serve all three. Only
+the manifests differ — `.codex-plugin/plugin.json`, the root `plugin.json`
+(Antigravity), and `.grok-plugin/plugin.json`.
 
-1. **Vendor the repo** into your project (clone it, or add it as a git submodule).
-2. **Point your agent at the protocol.** XROS ships an [`AGENTS.md`](AGENTS.md) — the
-   cross-tool [agents.md](https://agents.md) conventions file — so an agent that reads it
-   gets oriented, then opens `commands/compile.md` (or `commands/reason.md`) and follows
-   the same interview → spec arc. For a tool that reads a different filename, `@`-reference
-   or paste the command file directly.
-3. **Enforce the gate exactly as XROS does** — run the tool-neutral validator and treat a
-   non-zero exit as *unverified*:
-   ```bash
-   python3 schema/tools/xros_validate.py schema/xros-spec.schema.json <your-spec>.json
-   ```
+**What is identical everywhere.** The part that does the verifying: the JSON spec
+schema, the dependency-free validator, the three-tier model, and the rule that the
+verdict is gated on the oracle's exit code. `schema/tools/xros_validate.py` is
+stdlib-only Python and does not care which AI wrote the spec.
 
-**Per tool, concretely:**
+**What genuinely differs — stated plainly.** The Claude Code build runs the search on a
+real multi-agent Workflow: every route and every skeptic is a separate agent with its
+own context. The skills describe that same algorithm as a protocol the host executes
+with **its own** sub-agents (Grok's `spawn_subagent`, Antigravity's sub-agents) — or,
+where a host exposes no sub-agent primitive, sequentially within one context.
 
-- **OpenAI Codex CLI** — reads the `AGENTS.md` this repo already ships; run the validator
-  in its shell. A native Codex plugin port (`.codex-plugin/` + a `codex/` tree, like the
-  sibling `grill` / `nlpm` plugins) is the natural next step but is **not yet built**.
-- **Google Antigravity** — reads its own project-instructions / `.agent` conventions;
-  point it at `commands/*.md` and run the same validator. No native package yet.
-- **xAI Grok (`grok-cli`)** — reads `AGENTS.md`; same protocol + same validator. No native
-  package yet.
+Sequential single-agent role-play is **weaker independence than separate agents**, and
+independence is exactly what makes a portfolio of routes and a slate of refutation votes
+mean anything. So `$xros-run` is required to report which dispatch mode it actually ran.
+The *guarantee* — no verification, no claim — is identical on every host; the *strength
+of the search* that precedes it is not.
 
-Bottom line: **the methodology and its enforcement are provider-neutral and work today on
-any agent; only the one-command install and the built-in multi-agent engine are Claude
-Code-only for now.** That is exactly why the repo is `xros`, not `xros-for-claude`.
+That is why the repo is `xros`, not `xros-for-claude`.
 
 ## The tier model — the safety mechanism
 
