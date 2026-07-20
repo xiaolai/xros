@@ -4,6 +4,13 @@
 
 [![Validated by NLPM](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/xiaolai/xros/main/nlpm-badge.json)](https://github.com/xiaolai/xros/blob/main/nlpm-badge.json)
 
+XROS is a **plugin for AI coding agents** — you install it into your assistant and drive
+it with four slash commands (`/xros:compile`, `/xros:sharpen`, `/xros:run`,
+`/xros:reason`). The commands ship for **Claude Code** today; the core they stand on — a
+JSON spec, a dependency-free validator, and a conformance suite — is provider-neutral, so
+the methodology travels even where the commands don't. Jump to [Install](#install) and
+[Using XROS](#using-xros), or read on for what it does.
+
 **Frame a question, then find out** — whether you arrive with a proof checker or with
 nothing but the question. XROS turns an investigation into a **verifiable methodology
 spec**, runs it against a **real check**, and gates the verdict on that check's exit
@@ -12,6 +19,30 @@ code.
 > **No verification, no claim.** XROS reports a result as verified only when a mechanical
 > check actually passed. Where no such check exists, it says so and refuses the strong
 > mode — instead of producing confident text with nothing anchoring it.
+
+## Install
+
+XROS is distributed through the **xiaolai marketplace**. Add the marketplace once, then
+install the plugin:
+
+```bash
+claude plugin marketplace add xiaolai/claude-plugin-marketplace
+claude plugin install xros@xiaolai --scope project   # or --scope user
+```
+
+> **Install fails with "Plugin not found in marketplace 'xiaolai'"?** Your local
+> marketplace clone is stale. Run `claude plugin marketplace update xiaolai` and retry —
+> `plugin install` does not auto-refresh.
+
+| Scope | Command | Effect |
+|-------|---------|--------|
+| **User** (default) | `claude plugin install xros@xiaolai --scope user` | Available in all your projects |
+| **Project** | `claude plugin install xros@xiaolai --scope project` | Shared with your team via `.claude/settings.json` |
+| **Local** | `claude plugin install xros@xiaolai --scope local` | Only you, only this repo |
+
+Requires **Python 3** (stdlib only) for the bundled validator and test suite — no
+`jsonschema`, no `npx`, no network. Restart Claude Code after installing so the four
+commands register.
 
 ## Who it's for
 
@@ -103,6 +134,40 @@ Tier-C decision (premises + future tripwires) — it does not settle the claim n
 | `/xros:sharpen` | **Orient → frame → discover.** Maps an unfamiliar field's minimal vocabulary (the nouns you can ask about, the verbs you can do), turns a vague question into a falsifiable claim, then finds the **currently best available** check (with a plain statement of what it *cannot* establish), or an honest "no check clears the soundness bar" |
 | `/xros:run` | Tier A/B spec → a multi-agent Workflow (independent routes, adversarial refutation, counterexample-fed loop) → runs your check and gates on its exit code. A Tier-C spec is redirected to `xros:reason` — the engine never runs without a check |
 | `/xros:reason` | The Tier-C path for a claim with no mechanical check: decompose into premises and verify the checkable ones, run a pre-mortem, emit dated tripwires. All output labeled UNVERIFIED |
+
+## Using XROS
+
+Once installed, you invoke the commands as **slash commands inside your assistant** —
+type `/xros:` and the four commands appear. You don't run a binary or edit config; you
+talk to the command and it interviews you. Where you start depends on where you stand
+(the map above decides it):
+
+```text
+/xros:sharpen     # new to the field, or can't yet say how you'd check an answer:
+                  #   orient (map the field's nouns & verbs) → frame → discover a check
+
+/xros:compile     # you can already state the question and how you'd check it:
+                  #   an interview that produces a validated spec
+
+/xros:run         # you have a Tier-A/B spec: the multi-agent engine runs it and
+                  #   gates the verdict on your check's exit code
+
+/xros:reason      # no mechanical check exists (Tier C): premises + pre-mortem +
+                  #   dated tripwires, all labelled UNVERIFIED
+```
+
+A first-timer typically runs `sharpen` → `compile` → `run`. A domain expert who already
+has the check can start straight at `compile`. Every command writes a spec conforming to
+`schema/xros-spec.schema.json`; you can also hand-write one and validate it yourself
+before a run:
+
+```bash
+python3 schema/tools/xros_validate.py schema/xros-spec.schema.json <your-spec>.json
+# exit 0 = VALID · 1 = INVALID · 2 = usage/IO/schema fault
+```
+
+Worked specs — one per tier — live in `schema/examples/` and `schema/tests/valid/` to
+copy from.
 
 ## The tier model — the safety mechanism
 
