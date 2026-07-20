@@ -304,12 +304,23 @@ rule it claims to.
 
 ## Status
 
-v0.2.0 — all four commands ship (compile, sharpen with the orient step, run, reason). The
-schema, the validator, and the conformance suite are
-the load-bearing, tested parts; the command bodies are natural-language programs whose
-rigor rests on their instructions (and on the reviews that hardened them). No spec has
-been driven end-to-end through a live `run`, so treat the orchestration as
-validated-by-review, not battle-tested.
+v0.3.0 — all four capabilities ship (compile, sharpen with the orient step, run, reason)
+on **four hosts**: slash commands on Claude Code, plus a shared skills tree for Codex,
+Antigravity, and Grok.
+
+The schema, the validator, and the conformance suite are the load-bearing, tested parts;
+the command and skill bodies are natural-language programs whose rigor rests on their
+instructions (and on the reviews that hardened them).
+
+**What is actually verified:** the port layouts validate against the real `grok` and
+`agy` binaries (`grok plugin validate` → *manifest is valid*; `agy plugin validate` →
+*4 skills processed*), and the conformance suite checks that the ported skills keep the
+anti-traversal path guard and the authoritative-exit-code rule, and ship no un-runnable
+Workflow script.
+
+**What is not:** no spec has been driven end-to-end through a live `run` on any host,
+and the Codex, Antigravity, and Grok installs have not been exercised end-to-end from a
+marketplace. Treat the orchestration as validated-by-review, not battle-tested.
 
 ## Where it came from
 
