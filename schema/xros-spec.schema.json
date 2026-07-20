@@ -50,14 +50,28 @@
         "ontology": {
           "type": "array",
           "minItems": 1,
-          "description": "Precise definition of every load-bearing term BEFORE search starts. Kills the ambiguity that lets agents talk past each other.",
+          "description": "Precise definition of every load-bearing term BEFORE search starts. Kills the ambiguity that lets agents talk past each other. When a term is adopted from xros:sharpen's domain map, its standing/source/provenance travel with it so the honesty signal is not lost.",
           "items": {
             "type": "object",
             "additionalProperties": false,
             "required": ["term", "definition"],
             "properties": {
               "term": { "type": "string", "minLength": 1 },
-              "definition": { "type": "string", "minLength": 1 }
+              "definition": { "type": "string", "minLength": 1 },
+              "standing": {
+                "type": "string",
+                "enum": ["canonical", "coinage", "contested"],
+                "description": "How settled the term is in its field: 'canonical' = textbook/standard; 'coinage' = one author's or a niche term; 'contested' = the field disagrees on it. Protects a newcomer from mistaking a coinage for established vocabulary."
+              },
+              "source": {
+                "type": "string",
+                "description": "A resolvable citation for the term (where it is defined/used). An unresolvable source means the term is unattested — drop it rather than present it."
+              },
+              "provenance": {
+                "type": "string",
+                "enum": ["user", "assistant-proposed", "assistant-assumed"],
+                "description": "Who supplied the term. Same meaning as approaches[].provenance; assistant-sourced terms lower the spec's confidence unless the user ratified them."
+              }
             }
           }
         },

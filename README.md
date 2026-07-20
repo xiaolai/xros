@@ -32,25 +32,32 @@ rule defends.**
 ## Built for the unknown — and the unknown unknown
 
 Software usually assumes you already know the question and how to answer it. XROS is
-built for the step before that.
+built for the step before that. The arc is **expand → frame → check**:
 
-- **A known unknown** — a question you can pose but not yet answer — is what the engine
-  is for: independent routes attack it, skeptics try to refute each result, and only a
-  check settles it.
-- **An unknown unknown** — you don't know how to ask, what would count as an answer, or
-  how people get fooled in this field — is what `sharpen` is for. It turns a vague
-  question into a falsifiable one, discovers the field's own way of checking such claims,
-  and surfaces the standard traps. That is the act of turning an unknown unknown into a
-  known unknown: now you know what to check, and what to watch for.
+- **Expand** — you don't even know the field's words. An unknown unknown is first a
+  *vocabulary* gap: you can't ask about `syuzhet` if you've never heard it, and you
+  can't check what you can't name. `sharpen`'s **orient** step maps the field's minimal
+  handles — the **nouns** you can ask about and the **verbs** you can do — each graded
+  by how settled it is and cited to a real source. That turns an unknown unknown into a
+  known unknown.
+- **Frame** — a question you can pose but not yet answer (a *known unknown*). `sharpen`
+  turns it into a falsifiable claim: one with a stated observation that would prove it
+  wrong.
+- **Check** — the engine settles it: independent routes attack the claim, skeptics try
+  to refute each result, and only a real check (`run`) or honest tripwires (`reason`)
+  close it out.
 
 Where you stand decides which command runs:
 
 ```mermaid
 flowchart TD
-  Q["Your question"] --> K{"Can you say how you'd<br/>check an answer?"}
+  Q["Your question<br/>(or just a field)"] --> V{"Do you know the<br/>field's vocabulary?"}
+  V -->|"no, new to it"| O["xros:sharpen · orient<br/>map the field's nouns & verbs"]
+  O --> K{"Can you say how you'd<br/>check an answer?"}
+  V -->|"yes"| K
   K -->|"a check that PROVES it"| A["Tier A · xros:run<br/>a verified result is possible"]
   K -->|"only a check for EVIDENCE"| B["Tier B · xros:run<br/>evidence, never proof"]
-  K -->|"not yet, but it is a real question"| S["xros:sharpen<br/>find the best available check"]
+  K -->|"not yet, but it is a real question"| S["xros:sharpen · frame + discover<br/>find the best available check"]
   K -->|"I cannot even frame it"| S
   S -->|"a check clears the bar"| A
   S -->|"none does"| C["Tier C · xros:reason<br/>premises + tripwires · UNVERIFIED"]
@@ -62,7 +69,7 @@ flowchart TD
 | Command | The move |
 |---------|----------|
 | `/xros:compile` | Interview → a validated spec. Asks, in plain language, how you would check an answer *before* anything else; hands off to `sharpen` when you can't |
-| `/xros:sharpen` | Vague or un-checkable question → a falsifiable claim + the **currently best available** check (with a plain statement of what it *cannot* establish), or an honest "no check clears the soundness bar" |
+| `/xros:sharpen` | **Orient → frame → discover.** Maps an unfamiliar field's minimal vocabulary (the nouns you can ask about, the verbs you can do), turns a vague question into a falsifiable claim, then finds the **currently best available** check (with a plain statement of what it *cannot* establish), or an honest "no check clears the soundness bar" |
 | `/xros:run` | Tier A/B spec → a multi-agent Workflow (independent routes, adversarial refutation, counterexample-fed loop) → runs your check and gates on its exit code. A Tier-C spec is redirected to `xros:reason` — the engine never runs without a check |
 | `/xros:reason` | The Tier-C path for a claim with no mechanical check: decompose into premises and verify the checkable ones, run a pre-mortem, emit dated tripwires. All output labeled UNVERIFIED |
 

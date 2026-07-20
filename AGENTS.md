@@ -21,7 +21,7 @@ a `statistical`/`none` check can never request `complete-only` and must state a
 | Command | Role |
 |---------|------|
 | `commands/compile.md` | Oracle-first interview → a validated spec |
-| `commands/sharpen.md` | Un-checkable question → falsifiable claim + best-available check |
+| `commands/sharpen.md` | Orient (map a field's nouns/verbs) → falsifiable claim → best-available check |
 | `commands/run.md` | Tier-A/B multi-agent engine, gated on the check's exit code |
 | `commands/reason.md` | Tier-C path: premises, pre-mortem, dated tripwires; UNVERIFIED |
 

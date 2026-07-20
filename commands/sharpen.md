@@ -1,6 +1,6 @@
 ---
-description: Turn a vague or unverifiable question into a falsifiable claim, then discover the currently best-available way to check it — with an explicit statement of what that check cannot establish. For when the user can't answer "how would you know if this were wrong?". Delegates web research to the deep-research skill; returns "no check clears the soundness bar" honestly rather than inventing one.
-argument-hint: "<a vague question or a claim you can't yet check>"
+description: Orient a newcomer in an unfamiliar field, sharpen a vague question into a falsifiable claim, then discover the currently best-available way to check it. First maps the field's minimal vocabulary (the nouns you can ask about, the verbs you can do), then frames, then finds the check with an explicit statement of what it cannot establish. For when the user can't yet say "how would I know if this were wrong?". Delegates web research to the deep-research skill; returns "no check clears the soundness bar" honestly rather than inventing one.
+argument-hint: "<a domain, a vague question, or a claim you can't yet check>"
 ---
 
 # xros:sharpen — frame a question, then find its best available check
@@ -10,21 +10,25 @@ The user's question (may be vague, may be malformed): **$ARGUMENTS**
 If `$ARGUMENTS` is empty, ask the user for the question and wait for it before
 proceeding to Step 1 — do not run the framing fan-out on an empty input.
 
-Your job is two coupled halves:
+Your job is three coupled phases — **expand → frame → discover**:
 
-1. **Frame** — sharpen a vague or ill-posed question into a *falsifiable claim*:
-   one for which you can state what observation would prove it wrong.
+0. **Orient (expand)** — map the field's minimal vocabulary so the user can even ask
+   the question: the **nouns** they can ask about and the **verbs** they can do. Skip
+   only if the user already speaks the field fluently.
+1. **Frame** — sharpen a vague or ill-posed question into a *falsifiable claim*: one
+   for which you can state what observation would prove it wrong.
 2. **Discover** — find the **currently best available** way to check that claim,
-   paired with its **ceiling** (what passing will not establish). If no check
-   clears the Step-2 soundness bar, say so — do not manufacture one.
+   paired with its **ceiling** (what passing will not establish). If no check clears
+   the Step-2 soundness bar, say so — do not manufacture one.
 
-They are coupled: how you should sharpen the question depends on what can actually
-be checked. Discovery may report *"no viable check for framing A, but framing B is
-checkable today"* — so loop back to framing rather than forcing a bad match.
+They are coupled: the vocabulary you surface shapes how you frame, and what can be
+checked shapes which framing is worth keeping. Discovery may report *"no viable check
+for framing A, but framing B is checkable today"* — so loop back rather than forcing
+a bad match.
 
-Framing is cheap; research is expensive. **Exhaust framing first** — a well-posed
-question very often makes its own check obvious, skipping the research spend
-entirely.
+Orienting and framing are cheap; research is expensive. **Exhaust them first** — the
+field's own vocabulary very often makes both the sharp question and its check obvious,
+skipping the research spend entirely.
 
 ## Non-negotiable honesty rules
 
@@ -52,6 +56,56 @@ entirely.
 The token-heavy stages need the least judgment; the judgment stages run on
 already-distilled text, so they stay cheap even on a stronger model. Set these via
 `opts.model` / `opts.effort` on each `agent()` call.
+
+---
+
+## Step 0 — Orient: the domain map (expand)
+
+When the user is new to the field, the reason they can't frame a question is usually a
+**vocabulary gap** — you can't ask about a concept you have never heard named, and you
+can't check what you can't name. Before framing, hand them the field's minimal set of
+handles. Skip this step only if the user already speaks the field fluently.
+
+Produce a **domain map** with two columns:
+
+- **Nouns — what you can ask about** (the field's objects/concepts). Each becomes a
+  candidate `objective.ontology` term. *(Narratology: fabula, syuzhet, focalization.)*
+- **Verbs — what you can do** (the field's operations/moves). Each becomes a candidate
+  **approach** (a route to try) or a **check**. *(Narratology: reorder events, withhold
+  then release information, foreshadow, narrate unreliably.)* The verbs are the
+  higher-leverage half — the levers, not the labels.
+
+For every entry, record:
+
+- **the question it lets you ask, or the move it lets you make** — a term with no
+  attached question is a glossary line, not a handle. This is what makes the map
+  *scope-expanding* rather than a dictionary.
+- **standing** — `canonical` (textbook/standard), `coinage` (one author's or niche), or
+  `contested` (the field disagrees). A newcomer must not mistake a coinage for
+  established vocabulary.
+- **source** — a resolvable citation. Same rule as everywhere in this command: a term
+  whose source you cannot fetch is unattested — **drop it, do not present it.** This is
+  the guard against handing a non-expert confident, invented jargon.
+- **provenance** — `user` / `assistant-proposed` / `assistant-assumed`.
+
+Run the research on **sonnet** (1M context), delegating to `deep-research` if present
+(else the first-party WebSearch/WebFetch fallback from Step 2); grade standing on the
+**stronger** model, and corroborate each `canonical` term across at least two
+independent authoritative sources before applying that label.
+
+Two honest limits, stated to the user:
+
+- **The map is a scaffold, not the territory.** "Minimal" is a judgment; say what you
+  pruned, and that this is a starting point for asking better questions — not mastery.
+- **The verbs are tier-diagnostic.** How a field *verifies* is itself a set of verbs:
+  *prove / formalize / model-check* → a sound check likely exists (Tier A); *backtest /
+  replicate / measure* → statistical (Tier B); *workshop / peer-review / argue* → human
+  judgment, no mechanical check (Tier C). Read the verb column as an early signal of
+  which tier the eventual spec will land in.
+
+Feed the surviving map forward: nouns seed `ontology` (carrying their standing / source
+/ provenance), verbs seed the framing angles in Step 1 and the candidate checks in Step
+2. If the user only wanted orientation, stop here and hand them the map.
 
 ---
 

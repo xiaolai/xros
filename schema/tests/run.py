@@ -171,6 +171,8 @@ structural = [
      lambda d: d["verification"]["verifier"].pop("ceiling")),
     ("enum: bad provenance value", example,
      lambda d: d["search"]["approaches"][0].__setitem__("provenance", "made-up")),
+    ("enum: bad ontology standing value", example,
+     lambda d: d["objective"]["ontology"][0].__setitem__("standing", "made-up")),
     ("bad asOf date format", example,
      lambda d: d["verification"]["verifier"].__setitem__("asOf", "July 20")),
     ("deferredVerification tripwire missing owner",
@@ -346,6 +348,11 @@ cases = [
     # ceiling is REQUIRED only for statistical/none — a sound check may omit it
     ("sound check may omit ceiling",
      mutate(example, lambda d: d["verification"]["verifier"].pop("ceiling")),
+     lambda d: xv_errors(d) == 0 and ((js_errors(d) == 0) if HAVE_JS else True)),
+    # ontology terms may carry the optional domain-map honesty fields
+    ("ontology term may carry standing/source/provenance",
+     mutate(example, lambda d: d["objective"]["ontology"][0].update(
+         {"standing": "canonical", "source": "https://example.org/x", "provenance": "assistant-proposed"})),
      lambda d: xv_errors(d) == 0 and ((js_errors(d) == 0) if HAVE_JS else True)),
 ]
 for name, d, pred in cases:
