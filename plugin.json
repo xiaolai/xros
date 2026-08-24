@@ -1,6 +1,6 @@
 {
   "$schema": "https://antigravity.google/schemas/v1/plugin.json",
   "name": "xros",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Executable research operating system. Compile an investigation into a verifiable methodology spec, sharpen an un-checkable question into a falsifiable claim with its best-available check, run the Tier-A/B engine gated on a real oracle, or reason through a no-oracle claim with premises, pre-mortem, and dated tripwires. Refuses to claim a verified result without a mechanical check."
 }
