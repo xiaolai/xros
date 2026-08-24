@@ -3,6 +3,9 @@
   "owner": {
     "name": "xiaolai"
   },
+  "metadata": {
+    "description": "xros — executable research operating system for verifiable investigation, by xiaolai"
+  },
   "plugins": [
     {
       "name": "xros",
