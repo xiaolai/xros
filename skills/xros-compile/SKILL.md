@@ -172,7 +172,7 @@ mostly from AI suggestions must carry that flag into `$xros-run`.
    interpolated into source, so an apostrophe in a path can neither break nor
    inject:
    ```bash
-   ROOT="${PLUGIN_ROOT:-${GROK_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}}"   # plugin install root; if unset,
+   ROOT="${PLUGIN_ROOT:-${GROK_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}}"   # plugin install root; if unset,
                                                 # locate xros_validate.py in this plugin
    SCHEMA="$ROOT/schema/xros-spec.schema.json"
    SPEC="xros/specs/<id>.spec.json"   # substitute the real id
@@ -212,3 +212,17 @@ from the spec and repeats the warning in its own report, so it survives the hand
 Never fabricate a check to unlock `complete-only`. "No sound check exists" is a
 correct, useful outcome — it tells the user the trustworthy engine does not fit
 their problem yet, and points them at `$xros-sharpen` rather than a dead end.
+
+## Examples
+
+<example>
+Context: The user has a runnable check that decides exactly the claim.
+user: "I want a Lean proof that my list-reverse function is an involution. If `lake build` accepts the proof file, it's right."
+assistant: "A proof checker that accepts the file establishes exactly that claim, so this is Tier A (`soundness: sound`) and `complete-only` is allowed. I'll fill the rest of the spec, validate it with the bundled validator, and hand you the path for `$xros-run`."
+</example>
+
+<example>
+Context: The user cannot say how they would check the answer.
+user: "Is narrative podcasting a good niche for me? I honestly don't know how I'd tell."
+assistant: "There's nothing we can run yet, and the question isn't sharp enough to check as asked, so I won't force a spec. I'll hand this to `$xros-sharpen` to frame a falsifiable claim and research the best available check, then bring its result back here."
+</example>

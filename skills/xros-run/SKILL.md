@@ -28,7 +28,7 @@ Locate the validator inside this plugin. It ships at
 
 ```bash
 # Codex sets PLUGIN_ROOT; Grok sets GROK_PLUGIN_ROOT; both also mirror CLAUDE_PLUGIN_ROOT.
-ROOT="${PLUGIN_ROOT:-${GROK_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}}"
+ROOT="${PLUGIN_ROOT:-${GROK_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}}"
 SPEC="<the one spec path the user gave — always quote it>"
 python3 "$ROOT/schema/tools/xros_validate.py" \
         "$ROOT/schema/xros-spec.schema.json" "$SPEC"
@@ -245,3 +245,17 @@ verdict is lower-confidence.
 - `toolPolicy.allowedTools` is prompt-level guidance unless your runtime can
   actually restrict a sub-agent's tools.
 - The reopen gate judges "materially new mechanism" by judgment, not proof.
+
+## Examples
+
+<example>
+Context: A Tier A spec whose oracle is a proof checker.
+user: "$xros-run xros/specs/lean-reverse.spec.json"
+assistant: "The spec is valid and Tier A (`soundness: sound`). Here is the cost range and the exact `verifier.command`; say go to start. After the search, I'll run the command myself on the top survivor in a fresh directory and report it as verified only if the exit code and passCondition pass."
+</example>
+
+<example>
+Context: The spec has no mechanical check.
+user: "$xros-run xros/specs/hire-first-salesperson.spec.json"
+assistant: "This spec's verifier is `soundness: none` (Tier C), so there is nothing to anchor a search and I won't run the engine. Redirecting to `$xros-reason` on the same spec for premise-checking, a pre-mortem, and dated tripwires, all labeled UNVERIFIED."
+</example>

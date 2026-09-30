@@ -19,7 +19,7 @@ failure XROS exists to prevent). Instead you do the adversarial thinking that do
 Validate the spec with the bundled validator (same invocation as `$xros-run` Step 1):
 
 ```bash
-ROOT="${PLUGIN_ROOT:-${GROK_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}}"   # plugin install root
+ROOT="${PLUGIN_ROOT:-${GROK_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}}"   # plugin install root
 SPEC="<the spec path the user gave — always quote it>"
 python3 "$ROOT/schema/tools/xros_validate.py" \
         "$ROOT/schema/xros-spec.schema.json" "$SPEC"
@@ -122,3 +122,17 @@ REQUIRED**:
 
 Do not present judgment as fact. The value here is a well-structured decision under
 acknowledged uncertainty — not a verdict.
+
+## Examples
+
+<example>
+Context: The spec's verifier has `soundness: none`.
+user: "$xros-reason xros/specs/hire-first-salesperson.spec.json"
+assistant: "The spec validates and has no mechanical check, so I won't run the engine. I'll extract the claim's premises, check the ones that can be checked today, run a pre-mortem, propose dated tripwires for you to ratify, and deliver a decision memo with a premise ledger, all labeled UNVERIFIED — HUMAN JUDGMENT REQUIRED."
+</example>
+
+<example>
+Context: The spec named has a real check.
+user: "$xros-reason xros/specs/lean-reverse.spec.json"
+assistant: "This spec's verifier is `soundness: sound`, so it has a mechanical check and this Tier-C path doesn't apply. Stopping here; run it with `$xros-run xros/specs/lean-reverse.spec.json` instead."
+</example>

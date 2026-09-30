@@ -1,5 +1,5 @@
 ---
-description: Orient a newcomer in an unfamiliar field, sharpen a vague question into a falsifiable claim, then discover the currently best-available way to check it. First maps the field's minimal vocabulary (the nouns you can ask about, the verbs you can do), then frames, then finds the check with an explicit statement of what it cannot establish. For when the user can't yet say "how would I know if this were wrong?". Delegates web research to the deep-research skill; returns "no check clears the soundness bar" honestly rather than inventing one.
+description: Orient a newcomer in an unfamiliar field, sharpen a vague question into a falsifiable claim, then discover the currently best-available way to check it. For when the user can't yet say "how would I know if this were wrong?". First maps the field's minimal vocabulary (the nouns you can ask about, the verbs you can do), and states what each check cannot establish. Delegates web research to the deep-research skill; returns "no check clears the soundness bar" honestly rather than inventing one.
 argument-hint: "<a domain, a vague question, or a claim you can't yet check>"
 ---
 

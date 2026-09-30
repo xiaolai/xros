@@ -1,6 +1,6 @@
 ---
 name: xros-sharpen
-description: Orient a newcomer in an unfamiliar field, sharpen a vague question into a falsifiable claim, then discover the currently best-available way to check it. First maps the field's minimal vocabulary (the nouns you can ask about, the verbs you can do), then frames, then finds the check with an explicit statement of what it cannot establish. For when the user can't yet say "how would I know if this were wrong?". Uses your runtime's web research capability; returns "no check clears the soundness bar" honestly rather than inventing one.
+description: Orient a newcomer in an unfamiliar field, sharpen a vague question into a falsifiable claim, then discover the currently best-available way to check it. For when the user can't yet say "how would I know if this were wrong?". First maps the field's minimal vocabulary (the nouns you can ask about, the verbs you can do), and states what each check cannot establish. Uses your runtime's web research capability; returns "no check clears the soundness bar" honestly rather than inventing one.
 ---
 
 # xros-sharpen — frame a question, then find its best available check
@@ -355,3 +355,17 @@ Every assistant-generated item is `assistant-assumed` until the user ratifies it
 **None-clears-the-bar** route still goes through `$xros-compile` (with
 `verifier.soundness: none`) to produce the validated spec that `$xros-reason` consumes —
 `reason` needs a spec, not a bare question.
+
+## Examples
+
+<example>
+Context: The user names only a field they are new to.
+user: "$xros-sharpen narratology"
+assistant: "That's a domain, not a question, so I'll start with Step 0: a domain map of cited nouns you can ask about (fabula, syuzhet, focalization) and verbs you can do, with any unattested terms dropped. If orientation is all you wanted, we stop at the map."
+</example>
+
+<example>
+Context: A vague question for which research finds no check that clears the soundness bar.
+user: "$xros-sharpen will remote work make my team less innovative?"
+assistant: "I'll sharpen this into falsifiable framings for you to pick from, then research how the field checks such claims. If no check clears the soundness bar, I'll say so plainly, give the strongest partial signal and its ceiling, and route you through `$xros-compile` with `soundness: none` to the Tier-C path `$xros-reason`, not the full `$xros-run` engine."
+</example>
