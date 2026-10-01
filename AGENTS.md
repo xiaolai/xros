@@ -115,5 +115,4 @@ Conventions:
 
 ## Standing limitation
 
-No spec has yet been driven end-to-end through a live `run`. Treat the orchestration
-as validated-by-review, not battle-tested.
+A bounded integer fixture completed a live Workflow + oracle run on Claude Code 2.1.286 (2026-10-01): three candidates survived and the Python oracle returned ORACLE_PASS. This establishes the narrow smoke path, not general research reliability. Run `node --test schema/tests/workflow.test.mjs` for serialized verdict association, cancellation and bounded retry regressions. See `schema/tests/bounded-addition.spec.json`.

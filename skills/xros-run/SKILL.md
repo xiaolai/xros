@@ -259,3 +259,7 @@ Context: The spec has no mechanical check.
 user: "$xros-run xros/specs/hire-first-salesperson.spec.json"
 assistant: "This spec's verifier is `soundness: none` (Tier C), so there is nothing to anchor a search and I won't run the engine. Redirecting to `$xros-reason` on the same spec for premise-checking, a pre-mortem, and dated tripwires, all labeled UNVERIFIED."
 </example>
+
+Associate refuter verdicts with a stable key formed from the assigned route and artifact fingerprint. Never use object identity across a Workflow/parallel boundary: returned objects may be serialized copies. Missing verdicts still fail closed.
+
+A missing or cancelled refuter vote rejects the current round but is not a substantive refutation. Keep that route retryable and remove its artifact key from deduplication, so a bounded retry can collect the complete vote set. Restore cumulative rounds and spent tokens; never reset the budget.

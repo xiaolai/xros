@@ -62,7 +62,7 @@ convergence or budget. Give a **range**, not a single number:
   `minRounds`, and blocked routes are skipped — so present it as a nominal range.
 - **Refuters**: `≤ approaches × verificationVotes` per round (survivors of dedup only).
 - `search.maxConcurrentAgents` (default 8) chunks each stage's fan-out; it can
-  lower peak concurrency but never raise it above the ~16 runtime cap.
+  lower peak concurrency within the host limit (up to 16 by default; configurable to 1–256 with CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS on Claude Code 2.1.269+).
   `budgetTokens` is a ceiling checked between chunks, so overshoot is bounded by
   at most one chunk.
 
@@ -345,11 +345,13 @@ while (round < MAXR && (round < MINR || dry < DRY)) {
   const tasks = fresh.flatMap(c => Array.from({ length: VOTES }, (_, i) => ({ c, i })))
   const flat = (await pool(tasks, t => () =>
     ask(refute(t.c, t.i), { ...aopts(`refute:${t.c.route}.${t.i}`, 'Refute'), schema: VERDICT })
-      .then(v => ({ c: t.c, v })))).filter(Boolean)
-  const byCand = new Map(fresh.map(c => [c, []]))
-  flat.forEach(r => { if (r.v && byCand.has(r.c)) byCand.get(r.c).push(r.v) })
+      .then(v => ({ key: t.c.route + '::' + artKey(t.c.artifactFiles), v })))).filter(Boolean)
+  // Workflow parallel results may be serialized: object identity does not survive.
+  const candidateKey = c => c.route + '::' + artKey(c.artifactFiles)
+  const byCand = new Map(fresh.map(c => [candidateKey(c), []]))
+  flat.forEach(r => { if (r.v && byCand.has(r.key)) byCand.get(r.key).push(r.v) })
   const judged = fresh.map(c => {
-    const v = byCand.get(c) || []
+    const v = byCand.get(candidateKey(c)) || []
     const nonRefute = v.filter(x => !x.refuted).length
     // FAIL CLOSED: need the full slate of verdicts AND a strict majority non-refute.
     const survived = v.length === VOTES && nonRefute > VOTES / 2
@@ -366,6 +368,11 @@ while (round < MAXR && (round < MINR || dry < DRY)) {
     if (j.survived) {
       st.blocked = false; st.cx = null
       if (j.candidate.summary) { ideas = trim(ideas.concat([j.candidate.summary])); infoSeq += 1 }
+    } else if (j.verdicts.length < VOTES) {
+      // An interrupted/missing vote is not a substantive refutation. Fail this round
+      // closed, but permit the same artifact to be retried within the remaining budget.
+      st.blocked = false
+      seen.delete(j.candidate.route + '::' + artKey(j.candidate.artifactFiles))
     } else {
       st.blocked = true
       st.cx = j.counterexamples[0] || st.cx
@@ -508,6 +515,6 @@ verdict is lower-confidence. This repeats compile's warning so it survives the h
 - `toolPolicy.allowedTools` is enforced at runtime only when `execution.agentType`
   names a restricted-tool agent type; otherwise it is prompt-level guidance.
 - `search.maxConcurrentAgents` caps each stage's fan-out (explore, reopen-gate, and
-  the flattened refuter pool) at that value, but cannot raise the ~16 runtime cap.
+  the flattened refuter pool) at that value, but cannot exceed the configured host limit (16 by default, configurable to 1–256).
 - The reopen gate judges "materially new mechanism" with an LLM call — the right
   mechanism for a semantic rule, but it is a judgment, not a proof.

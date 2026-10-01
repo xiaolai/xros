@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "1.1.0",
+  "id": "bounded-addition-smoke",
+  "title": "Bounded addition smoke",
+  "domain": "software-testing",
+  "provenance": {
+    "derivedFrom": "portfolio-regression-fixture",
+    "notes": "Assistant-authored bounded integration fixture. Only the integer artifact is verified."
+  },
+  "objective": {
+    "ontology": [
+      {
+        "term": "answer",
+        "definition": "a JSON integer"
+      }
+    ],
+    "claim": "Produce answer.json containing integer 4."
+  },
+  "success": {
+    "successCriterion": "answer.json is the JSON integer 4",
+    "nonGoals": [
+      "No claim beyond this exact finite fixture.",
+      "No claim about arbitrary addition programs."
+    ],
+    "existenceAssumption": "assume-solution-exists",
+    "returnPolicy": "complete-only"
+  },
+  "search": {
+    "approaches": [
+      {
+        "name": "add",
+        "family": "arithmetic",
+        "lens": "Compute 2+2",
+        "provenance": "assistant-proposed"
+      },
+      {
+        "name": "count",
+        "family": "enumeration",
+        "lens": "Count four objects",
+        "provenance": "assistant-proposed"
+      },
+      {
+        "name": "double",
+        "family": "algebra",
+        "lens": "Double two",
+        "provenance": "assistant-proposed"
+      }
+    ],
+    "independenceRounds": 2,
+    "maxConcurrentAgents": 3,
+    "crossPollinationRule": "After independent rounds, share candidate summaries.",
+    "blockedRouteReopenRule": "Reopen a refuted route only with a materially changed artifact.",
+    "antiProgressRules": [
+      "A verbal answer without answer.json is not progress."
+    ],
+    "requiredArtifacts": [
+      "answer.json"
+    ]
+  },
+  "verification": {
+    "adversarialChecklist": [
+      {
+        "failureMode": "Wrong or nonnumeric answer",
+        "check": "Parse JSON and require integer 4",
+        "provenance": "assistant-proposed"
+      },
+      {
+        "failureMode": "Claim without artifact",
+        "check": "Require answer.json to exist",
+        "provenance": "assistant-proposed"
+      }
+    ],
+    "verificationVotes": 3,
+    "verifier": {
+      "kind": "reproducible-experiment",
+      "soundness": "sound",
+      "tool": "python3",
+      "command": "python3 -c 'import json; x=json.load(open(\"answer.json\")); assert type(x) is int and x==4; print(\"ORACLE_PASS\")'",
+      "artifactToVerify": [
+        "answer.json"
+      ],
+      "passCondition": {
+        "exitCodes": [
+          0
+        ],
+        "stdoutContains": [
+          "ORACLE_PASS"
+        ]
+      },
+      "ceiling": "Only verifies this one integer fixture."
+    }
+  },
+  "stopping": {
+    "minRounds": 1,
+    "maxRounds": 1,
+    "budgetTokens": 100000,
+    "convergenceRule": {
+      "consecutiveEmptyRounds": 2
+    }
+  },
+  "toolPolicy": {
+    "webSearch": "background-only",
+    "forbiddenLookups": [],
+    "allowedTools": [
+      "Read"
+    ]
+  },
+  "execution": {
+    "preview": false,
+    "isolation": "none",
+    "agentModel": "haiku"
+  }
+}
